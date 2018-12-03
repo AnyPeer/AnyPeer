@@ -12,3 +12,7 @@ The sending operation only uses the Elastos Carrier. Image,Voice and Video use C
 
 ## ELA
 You can transfer ela to your friend or a ela wallet. This operation only uses the Elastos's SPV.
+
+## Remark
+
+* Telegram (AnyPeer): https://0.plus/AnyPeer
