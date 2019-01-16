@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/windows_color"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/ll_reboot"
+            style="@style/MMListItem"
+            android:layout_height="65.0dip"
+            android:background="@color/white"
+            android:paddingLeft="15dip">
+
+
+            <ImageView
+                android:id="@+id/contactitem_avatar_iv"
+                android:layout_width="40.0dip"
+                android:layout_height="40.0dip"
+                android:src="@drawable/icon_reboot" />
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingLeft="8.0dip">
+
+                <TextView
+                    android:id="@+id/tv_reboot"
+                    style="@style/MMFontTitleInList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:text="@string/smart_reboot" />
+
+                <TextView
+                    android:id="@+id/tv_reboot_status"
+                    style="@style/MMFontTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_toRightOf="@id/tv_reboot"
+                    android:background="@drawable/btn_bg_blue"
+                    android:text="@string/robot_offline"
+                    android:textSize="10sp"
+                    android:textColor="@color/gray"
+                    android:visibility="visible" />
+            </RelativeLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/black2" />
+    </LinearLayout>
+
+
+    <ListView
+        android:id="@+id/lvContact"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginTop="10dp"
+        android:cacheColorHint="#00000000"
+        android:divider="#00000000"
+        android:dividerHeight="0dp"
+        android:listSelector="#00000000"
+        android:scrollbars="none" />
+</LinearLayout>

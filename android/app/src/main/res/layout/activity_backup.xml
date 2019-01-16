@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".moudle.wallet.WalletActivity">
+
+    <include
+        android:id="@+id/layout_bar"
+        layout="@layout/layout_title" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:text="@string/backup_save"
+        android:textColor="#ff333333"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:text="@string/backup_save_extra"
+        android:textColor="#ff999999"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:text="@string/backup_save_offline"
+        android:textColor="#ff333333"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:text="@string/backup_save_offline_extra"
+        android:textColor="#ff999999"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:text="@string/backup_save_nonetwork"
+        android:textColor="#ff333333"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:text="@string/backup_save_nonetwork_extra"
+        android:textColor="#ff999999"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/tv_backup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_10"
+        android:background="@color/blackk"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:textColor="#ff333333"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/bt_copy"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_margin="20dp"
+        android:background="@drawable/btn_bg_green_crciry"
+        android:text="@string/backup_save_copy"
+        android:textColor="#ffffffff"
+        android:textSize="15sp" />
+</LinearLayout>

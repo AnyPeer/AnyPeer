@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/scan"
+        android:title="@string/menu_qrcode"/>
+
+    <item android:id="@+id/friend"
+        android:title="@string/menu_addfriend"/>
+
+    <item android:id="@+id/paymentandgathering"
+        android:title="@string/menu_receiptaddress"/>
+</menu>

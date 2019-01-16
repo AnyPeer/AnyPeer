@@ -1,0 +1,177 @@
+<resources>
+    <string name="app_name">AnyPeer</string>
+    <string name="chat_title">AnyPeer</string>
+    <string name="contacts">通讯录</string>
+    <string name="me">我</string>
+    <string name="no_msg">暂时没有新消息</string>
+    <string name="wallet">钱包</string>
+    <string name="settings">设置</string>
+
+    <string name="menu_addfriend">添加朋友</string>
+    <string name="menu_qrcode">扫一扫</string>
+    <string name="menu_receiptaddress">收款地址</string>
+    <string name="qrcode_text_1">请将二维码置于取景框内，即可自动扫描</string>
+
+    <string name="asterisk">*</string>
+    <string name="nickname">昵称</string>
+    <string name="nickname_title">&#160;昵&#160;&#160;&#160;&#160;称:</string>
+    <string name="sex">性别</string>
+    <string name="sex_title">性别:</string>
+    <string name="tr_radio_op1">男</string>
+    <string name="tr_radio_op2">女</string>
+    <string name="tr_radio_op3">保密</string>
+    <string name="phone">电话</string>
+    <string name="email">邮箱</string>
+    <string name="email_title">邮箱:</string>
+    <string name="address_title">邮箱:</string>
+    <string name="password">密码</string>
+    <string name="password_title">密&#160;&#160;&#160;&#160;&#160;&#160;&#160;码:</string>
+    <string name="password_again_title">确认密码:</string>
+    <string name="password_tip">*密码为6位数字*</string>
+    <string name="complite">完成</string>
+    <string name="qrcode">二维码</string>
+    <string name="mine">我的</string>
+    <string name="my_carrier_address">我的联系地址</string>
+
+    <!-- About wallet-->
+    <string name="wallet_backup">备份</string>
+    <string name="wallet_backupmnemonic">备份助记词</string>
+    <string name="wallet_inamount">收入</string>
+    <string name="wallet_outamount">支出</string>
+    <string name="wallet_confirmed">已确认</string>
+    <string name="wallet_totalasset">总资产(ELA)</string>
+    <string name="wallet_record">交易记录</string>
+    <string name="content_copyed">已复制</string>
+    <string name="longpressto_copy">*长按二维码可复制地址*</string>
+
+    <!-- About online-->
+    <string name="friend_online">在线</string>
+    <string name="friend_offline">已离线</string>
+
+    <!-- About transfer-->
+    <string name="transfer_address_text">收款地址</string>
+    <string name="transfer_text">转账</string>
+    <string name="transfer_text_remark">添加备注（50字以内）</string>
+    <string name="transfer_text_sure">确认转账</string>
+    <string name="transfer_to">转账给: </string>
+    <string name="transfer_amount_balance">转账金额  (账户余额: %1$s ELA)</string>
+    <string name="transfer_amount_least">最少0.0001 ELA</string>
+
+    <!-- About main-->
+    <string name="newmsg_recvtransfer">[收到转账]</string>
+    <string name="newmsg_transfer">[转账]</string>
+    <string name="newmsg_image">[图片]</string>
+    <string name="newmsg_voice">[语音]</string>
+    <string name="newmsg_video">[视频]</string>
+
+    <!-- friend request-->
+    <string name="chat_transfer_received">收到转账: %1$s ELA)</string>
+    <string name="chat_transfer_send">转账: %1$s ELA)</string>
+
+    <!-- chat request-->
+    <string name="chat_file_type_1">拍照</string>
+    <string name="chat_file_type_2">相册</string>
+    <string name="chat_file_type_3">摄像</string>
+    <string name="resend">重新发送</string>
+    <string name="delete_message">删除消息</string>
+    <string name="copy_message">复制消息</string>
+    <string name="move_up_to_cancel">手指上滑，取消发送</string>
+    <string name="release_to_cancel">松开手指，取消发送</string>
+    <string name="recoding_fail">录音失败，请重试！</string>
+
+    <!-- friend request-->
+    <string name="friend_request_apply">申请好友</string>
+    <string name="friend_request_detail">好友详情</string>
+    <string name="friend_request_agree">同意</string>
+    <string name="friend_request_reject">拒绝</string>
+    <string name="friend_request_apply_1">是否接受</string>
+    <string name="friend_request_apply_2">添加你为好友</string>
+
+    <string name="friend_detail_sendmsg">发消息</string>
+    <string name="friend_detail_deletefriend">删除好友</string>
+    <string name="friend_detail_delete_ask">是否删除好友:  </string>
+
+    <!-- friend add-->
+    <string name="friend_readd_text1">重新添加好友</string>
+    <string name="friend_add_text1">添加好友</string>
+    <string name="friend_add_ask_1">是否添加 [</string>
+    <string name="friend_readd_ask_1">是否重新添加 [</string>
+    <string name="friend_add_ask_2"> ]为好友</string>
+    <string name="friend_add_yes">是</string>
+    <string name="friend_add_no">否</string>
+    <string name="friend_adress">好友地址</string>
+    <string name="text_ok">好</string>
+    <string name="invalid_friend_adress">无效的好友地址</string>
+
+    <!-- friend add-->
+    <string name="backup_save">确定保存</string>
+    <string name="backup_save_extra">请确定保存您的助记词。一旦助记词丢失，您的资产将无法找回。</string>
+    <string name="backup_save_offline">离线保存</string>
+    <string name="backup_save_offline_extra">切勿保存至邮箱、记事本、网盘、聊天工具等危险位置。</string>
+    <string name="backup_save_nonetwork">请勿使用网络传输</string>
+    <string name="backup_save_nonetwork_extra">请勿通过网络工具传输助记词文件，一旦被他人获取将造成不可挽回的资产损失。</string>
+    <string name="backup_save_copy">复制助记词</string>
+
+    <string-array name="sex">
+        <item>@string/tr_radio_op1</item>
+        <item>@string/tr_radio_op2</item>
+        <item>@string/tr_radio_op3</item>
+    </string-array>
+
+    <string name="input_pay_password">请输入支付密码</string>
+
+    <string name="delivered">已送达</string>
+    <string name="delivering">发送中</string>
+    <string name="undelivered">发送失败</string>
+
+    <!-- robot-->
+    <string name="robot_offline">睡着了</string>
+    <string name="robot_online">醒来了</string>
+    <string name="smart_reboot">智能机器人</string>
+    <string name="apply_test_money">申请测试币</string>
+    <string name="apply_success">申请成功</string>
+    <string name="apply_fail">申请失败</string>
+    <string name="btn_sure">确定</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_retry">重试</string>
+
+    <!-- setting-->
+    <string name="logout">退出登录</string>
+    <string name="setting">设置</string>
+    <string name="Two_input_password">两次输入的密码不一致，请重新输入!</string>
+
+    <!-- apply result-->
+    <string name="applyreslut_invalidaddress">对不起，您的钱包地址无效</string>
+    <string name="applyreslut_applied">对不起，您已经申请过了</string>
+    <string name="applyreslut_noela">对不起，我没有ELA了，您要等等</string>
+    <string name="applyreslut_ela">恭喜，请等会查看您的钱包</string>
+    <string name="applyreslut_tryagain">可能网络出错，请等会再试试</string>
+
+    <string name="open_notification_dialog">请手动将通知权限打开, 以便收到信息</string>
+    <string name="complite_user_info">完善个人资料</string>
+    <string name="permission_camera">请授权相机权限</string>
+
+    <string name="is_jion_friend_auto_pass">加我为好友时需要验证</string>
+    <string name="is_message_show_notification">开启消息通知栏提示</string>
+    <string name="init_wallet">重新生成钱包</string>
+    <string name="clear_friend_data">清除好友数据</string>
+
+    <!-- time-->
+    <string name="chat_time_1">晚上</string>
+    <string name="chat_time_2">凌晨</string>
+    <string name="chat_time_3">下午</string>
+    <string name="chat_time_4">上午</string>
+    <string name="chat_time_5">昨天</string>
+    <string name="chat_time_6">M月d日 HH:mm</string>
+
+    <!-- getting friend info -->
+    <string name="main_getting_friend_info">"正在获取好友信息 &#8230;"</string>
+
+    <string name="press_to_recorder">按住拍</string>
+
+    <string name="btn_text_send">发送</string>
+    <string name="btn_text_speak">按住录音</string>
+    <string name="btn_text_speak_over">松开结束</string>
+
+    <string name="unread_number">未读: %1$s 条</string>
+</resources>

@@ -1,0 +1,177 @@
+<resources>
+    <string name="app_name">AnyPeer</string>
+    <string name="chat_title">AnyPeer</string>
+    <string name="contacts">Contacts</string>
+    <string name="me">Me</string>
+    <string name="no_msg">No new news</string>
+    <string name="wallet">Wallet</string>
+    <string name="settings">Settings</string>
+
+    <string name="menu_addfriend">Add Contacts</string>
+    <string name="menu_qrcode">Scan</string>
+    <string name="menu_receiptaddress">ELA Address</string>
+    <string name="qrcode_text_1">Align the QR Code within the frame to scan</string>
+
+    <string name="asterisk">*</string>
+    <string name="nickname">Nickname</string>
+    <string name="nickname_title">Nickname:&#160;</string>
+    <string name="sex">Sex</string>
+    <string name="sex_title">Sex:</string>
+    <string name="tr_radio_op1">Man</string>
+    <string name="tr_radio_op2">Woman</string>
+    <string name="tr_radio_op3">Secrecy</string>
+    <string name="phone">Phone</string>
+    <string name="email">Email</string>
+    <string name="email_title">Email:</string>
+    <string name="address_title">Email:</string>
+    <string name="password">Password</string>
+    <string name="password_title">Password:</string>
+    <string name="password_again_title">Confirm:</string>
+    <string name="password_tip">*The password is 6 digit*</string>
+    <string name="complite">Finish</string>
+    <string name="qrcode">QR Code</string>
+    <string name="mine">Mine</string>
+    <string name="my_carrier_address">My Contact Address</string>
+
+    <!-- About wallet-->
+    <string name="wallet_backup">Backup</string>
+    <string name="wallet_backupmnemonic">Backup Mnemonic</string>
+    <string name="wallet_inamount">Income</string>
+    <string name="wallet_outamount">Pay</string>
+    <string name="wallet_confirmed">Confirmed</string>
+    <string name="wallet_totalasset">Total assets(ELA)</string>
+    <string name="wallet_record">Transaction record</string>
+    <string name="content_copyed">Copied</string>
+    <string name="longpressto_copy">*Long press QR Code to copy it*</string>
+
+    <!-- About online-->
+    <string name="friend_online">Online</string>
+    <string name="friend_offline">Offline</string>
+
+    <!-- About transfer-->
+    <string name="transfer_address_text">My ELA Address</string>
+    <string name="transfer_text">Transfer</string>
+    <string name="transfer_text_remark">Remark</string>
+    <string name="transfer_text_sure">Transfer</string>
+    <string name="transfer_to">Transfer to: </string>
+    <string name="transfer_amount_balance">Transfer amount (Balance: %1$s ELA)</string>
+    <string name="transfer_amount_least">At least 0.0001 ELA</string>
+
+    <!-- About main-->
+    <string name="newmsg_recvtransfer">[Transfer]</string>
+    <string name="newmsg_transfer">[Transfer]</string>
+    <string name="newmsg_image">[Image]</string>
+    <string name="newmsg_voice">[Voice]</string>
+    <string name="newmsg_video">[Video]</string>
+
+    <!-- friend request-->
+    <string name="chat_transfer_received">Transfer: %1$s ELA)</string>
+    <string name="chat_transfer_send">Transfer: %1$s ELA)</string>
+
+    <!-- chat request-->
+    <string name="chat_file_type_1">Photograph</string>
+    <string name="chat_file_type_2">Album</string>
+    <string name="chat_file_type_3">Camera</string>
+    <string name="resend">Resend</string>
+    <string name="delete_message">Delete the message</string>
+    <string name="copy_message">Copy the message</string>
+    <string name="move_up_to_cancel">Slip your finger and cancel sending</string>
+    <string name="release_to_cancel">Release your finger and cancel sending</string>
+    <string name="recoding_fail">The recording failed. Please try again！</string>
+
+    <!-- friend request-->
+    <string name="friend_request_apply">Friend Request</string>
+    <string name="friend_request_detail">Friend details</string>
+    <string name="friend_request_agree">Agree</string>
+    <string name="friend_request_reject">Reject</string>
+    <string name="friend_request_apply_1">Agree the request from: </string>
+    <string name="friend_request_apply_2"> </string>
+
+    <string name="friend_detail_sendmsg">Messages</string>
+    <string name="friend_detail_deletefriend">Delete</string>
+    <string name="friend_detail_delete_ask">Delete the friend:  </string>
+
+    <!-- friend add-->
+    <string name="friend_readd_text1">Add the friend again</string>
+    <string name="friend_add_text1">Add Contacts</string>
+    <string name="friend_add_ask_1">Add the friend [</string>
+    <string name="friend_readd_ask_1">Add the friend again [</string>
+    <string name="friend_add_ask_2"> ]</string>
+    <string name="friend_add_yes">Yes</string>
+    <string name="friend_add_no">No</string>
+    <string name="friend_adress">Friend Address</string>
+    <string name="text_ok">OK</string>
+    <string name="invalid_friend_adress">Invalid Address</string>
+
+    <!-- friend add-->
+    <string name="backup_save">Definite preservation</string>
+    <string name="backup_save_extra">Make sure to save your mnemonic. Once mnemonic words are lost, your assets will not be recovered</string>
+    <string name="backup_save_offline">Offline save</string>
+    <string name="backup_save_offline_extra">Do not save it to mailbox, notebook, Internet disk, chat tool, etc.</string>
+    <string name="backup_save_nonetwork">Do not use network transmission</string>
+    <string name="backup_save_nonetwork_extra">Do not transfer mnemonics through network tools. Once acquired by others, it will cause irreparable loss of assets.</string>
+    <string name="backup_save_copy">Copy mnemonic</string>
+
+    <string-array name="sex">
+        <item>@string/tr_radio_op1</item>
+        <item>@string/tr_radio_op2</item>
+        <item>@string/tr_radio_op3</item>
+    </string-array>
+
+    <string name="input_pay_password">请输入支付密码</string>
+
+    <string name="delivered">Sent</string>
+    <string name="delivering">Sending</string>
+    <string name="undelivered">Failed</string>
+
+    <!-- robot-->
+    <string name="robot_offline">Asleep</string>
+    <string name="robot_online">Wake up</string>
+    <string name="smart_reboot">Half Robot</string>
+    <string name="apply_test_money">Apply Test ELA</string>
+    <string name="apply_success">Application success</string>
+    <string name="apply_fail">Application failure</string>
+    <string name="btn_sure">OK</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_retry">Try Again</string>
+
+    <!-- setting-->
+    <string name="logout">Log Out</string>
+    <string name="setting">Settings</string>
+    <string name="Two_input_password">The password entered twice is inconsistent. Please re-enter it.</string>
+
+    <!-- apply result-->
+    <string name="applyreslut_invalidaddress">Sorry, your wallet address is invalid</string>
+    <string name="applyreslut_applied">Sorry, you have already applied.</string>
+    <string name="applyreslut_noela">Sorry, i spent my ELA</string>
+    <string name="applyreslut_ela">Congratulations. Please check your wallet later.</string>
+    <string name="applyreslut_tryagain">There may be a network error. Please try again later.</string>
+
+    <string name="open_notification_dialog">Please open notification permission manually to receive information</string>
+    <string name="complite_user_info">Perfecting personal data</string>
+    <string name="permission_camera">Please authorize camera permission</string>
+
+    <string name="is_jion_friend_auto_pass">Friend Confirmation</string>
+    <string name="is_message_show_notification">Show Message Notifications</string>
+    <string name="init_wallet">Regenerate Wallet</string>
+    <string name="clear_friend_data">Clear All Friends Data</string>
+
+    <!-- time-->
+    <string name="chat_time_1">PM</string>
+    <string name="chat_time_2">AM</string>
+    <string name="chat_time_3">PM</string>
+    <string name="chat_time_4">AM</string>
+    <string name="chat_time_5">Yesterday</string>
+    <string name="chat_time_6">MM-dd HH:mm</string>
+
+    <!-- getting friend info -->
+    <string name="main_getting_friend_info">"Getting the friend's name &#8230;"</string>
+
+    <string name="press_to_recorder">Press</string>
+
+    <string name="btn_text_send">Send</string>
+    <string name="btn_text_speak">Hold to Talk</string>
+    <string name="btn_text_speak_over">Release to cancel</string>
+
+    <string name="unread_number">Unread: %1$s </string>
+</resources>

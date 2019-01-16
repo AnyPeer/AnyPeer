@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bgcolor"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/layout_bar"
+        layout="@layout/layout_title" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="30dp"
+        android:background="#e7e7e7" />
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_is_pass"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:sDividerLineType="none"
+        app:sLeftTextString="@string/is_jion_friend_auto_pass"
+        app:sRightViewType="switchBtn" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#e7e7e7" />
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_is_message_show_notification"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:sDividerLineType="none"
+        app:sLeftTextString="@string/is_message_show_notification"
+        app:sRightViewType="switchBtn" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#e7e7e7" />
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_init_wallet"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:sDividerLineType="none"
+        android:visibility="gone"
+        app:sLeftTextString="@string/init_wallet" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:visibility="gone"
+        android:background="#e7e7e7" />
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_clear_friend_data"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:sDividerLineType="none"
+        android:visibility="gone"
+        app:sLeftTextString="@string/clear_friend_data" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:visibility="gone"
+        android:background="#e7e7e7" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="30dp"
+        android:visibility="gone"
+        android:background="#e7e7e7" />
+
+    <TextView
+        android:id="@+id/tv_logout"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/white"
+        android:gravity="center"
+        android:text="@string/logout"
+        android:visibility="gone"
+        android:textColor="@color/red" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:visibility="gone"
+        android:background="#e7e7e7" />
+</LinearLayout>

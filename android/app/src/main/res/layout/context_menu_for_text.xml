@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="20dp"
+    android:layout_marginRight="20dp"
+    android:gravity="center_horizontal"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:background="@drawable/btn_bg_gray"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/tv_retry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:onClick="retry"
+        android:padding="10dp"
+        android:text="@string/resend"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:onClick="copy"
+        android:padding="10dp"
+        android:text="@string/copy_message"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:onClick="delete"
+        android:padding="10dp"
+        android:text="@string/delete_message"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+</LinearLayout>

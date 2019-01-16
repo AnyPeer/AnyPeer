@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".moudle.mine.MineActivity">
+
+    <include
+        android:id="@+id/layout_bar"
+        layout="@layout/layout_title" />
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_name"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="10dp"
+        app:sLeftTextString="@string/nickname"
+        app:sRightIconRes="@drawable/right"/>
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_sex"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="10dp"
+        app:sLeftTextString="@string/sex"
+        app:sRightIconRes="@drawable/right"/>
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_email"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="10dp"
+        app:sLeftTextString="@string/email"
+        app:sRightIconRes="@drawable/right"/>
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_qrcode"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="10dp"
+        app:sLeftTextString="@string/qrcode"
+        app:sRightIconRes="@drawable/right"/>
+</LinearLayout>

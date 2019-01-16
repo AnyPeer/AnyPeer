@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/ll_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:layout_marginTop="60dp"
+        android:background="@drawable/shape_dialog"
+        android:orientation="vertical"
+        android:paddingBottom="15dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                style="@style/style_black_normal_text"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/text_item_height"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:text="@string/input_pay_password" />
+
+            <ImageView
+                android:id="@+id/iv_close"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="@dimen/spacing_tiny"
+                android:src="@drawable/icon_cancel" />
+
+        </RelativeLayout>
+
+        <View style="@style/style_separate_line" />
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="15dp"
+            android:textColor="#ff222222"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tv_content"
+            style="@style/style_black_normal_text"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/text_item_height"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="15dp"
+            android:gravity="center"
+            android:text=""
+            android:textSize="36sp" />
+
+        <View style="@style/style_separate_line" />
+
+        <any.xxx.anypeer.widget.PayPwdView
+            android:id="@+id/payPwdView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/spacing_large"
+            android:layout_marginRight="@dimen/spacing_large"
+            android:layout_marginTop="20dp"
+            android:background="@color/white" />
+    </LinearLayout>
+
+    <any.xxx.anypeer.widget.PwdInputMethodView
+        android:id="@+id/inputMethodView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+</RelativeLayout>
