@@ -1,5 +1,5 @@
 # AnyPeer
-We are AnyPeer. And we'll open source in a few months.
+We are AnyPeer.
 
 ## We can send
 * Text
