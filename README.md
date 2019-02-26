@@ -1,3 +1,5 @@
+![AnyPeer](/android/app/src/main/res/mipmap-xxxhdpi/app_icon.png)
+
 # AnyPeer
 We are AnyPeer.
 
