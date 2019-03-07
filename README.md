@@ -1,6 +1,6 @@
 ![AnyPeer](/android/app/src/main/res/mipmap-xxxhdpi/app_icon.png)
 
-# AnyPeer
+# AnyPeer: Based on Elastos Carrier and SPV
 We are AnyPeer.
 
 ## We can send
