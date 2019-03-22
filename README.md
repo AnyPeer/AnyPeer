@@ -18,5 +18,7 @@ You can transfer ela to your friend or a ela wallet. This operation only uses th
 ## Remark
 
 * Telegram: https://t.me/AnyPeer
+* Telegram Group: https://t.me/Anypeerofficial
 
-* BiYong AnyPeer中文频道: https://0.plus/AnyPeer_CN
+* AnyPeer中文频道: https://0.plus/AnyPeer_CN
+* AnyPeer中文群: https://t.me/Anypeer_IM
