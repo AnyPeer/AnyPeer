@@ -1,6 +1,8 @@
 ![AnyPeer](/android/app/src/main/res/mipmap-xxxhdpi/app_icon.png)
 
 # AnyPeer: Based on Elastos Carrier and SPV
+AnyPeer: is a social application powered by Elastos, which includes decentralized chat and decentralized wallet. In the future, we will join games based on Elastos smart contract sidechain.AnyPeer: is a social application powered by Elastos, which includes decentralized chat and decentralized wallet. In the future, we will join games based on Elastos smart contract sidechain.
+
 We are AnyPeer.
 
 ## We can send
