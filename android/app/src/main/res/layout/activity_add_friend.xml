@@ -32,5 +32,6 @@
         android:background="@drawable/btn_bg_green_crciry"
         android:text="@string/friend_add_text1"
         android:textColor="@color/white"
+        android:textAllCaps="false"
         android:enabled="false"/>
 </LinearLayout>

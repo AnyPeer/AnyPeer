@@ -41,6 +41,7 @@ public class ContactAdapter extends BaseAdapter implements SectionIndexer {
         mContext = context;
         if (UserInfos != null) {
 	        mUserInfos.addAll(UserInfos);
+            System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
 	        Collections.sort(mUserInfos, mComparator);
             Collections.sort(mUserInfos, mOnlineStatusComparator);
         }

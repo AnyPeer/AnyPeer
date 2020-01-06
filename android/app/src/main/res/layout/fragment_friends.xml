@@ -17,7 +17,6 @@
             android:background="@color/white"
             android:paddingLeft="15dip">
 
-
             <ImageView
                 android:id="@+id/contactitem_avatar_iv"
                 android:layout_width="40.0dip"
@@ -50,6 +49,15 @@
                     android:textSize="10sp"
                     android:textColor="@color/gray"
                     android:visibility="visible" />
+
+                <TextView
+                    style="@style/MMFontTitleInList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="18dp"
+                    android:layout_alignParentRight="true"
+                    android:text="@string/apply_lottery"
+                    android:textColor="@color/orange1"/>
             </RelativeLayout>
         </LinearLayout>
 

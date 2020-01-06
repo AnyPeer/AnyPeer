@@ -15,7 +15,8 @@
             android:layout_height="@dimen/text_item_height"
             android:layout_centerInParent="true"
             android:gravity="center"
-            android:text="@string/apply_test_money" />
+            android:visibility="gone"
+            android:text="@string/apply_lottery" />
 
         <ImageView
             android:id="@+id/iv_close"
@@ -62,6 +63,7 @@
         android:layout_gravity="center_horizontal"
         android:background="@drawable/btn_bg_write_crciry"
         android:visibility="gone"
+        android:textAllCaps="false"
         android:text="@string/btn_retry"/>
 
     <Button
@@ -72,5 +74,6 @@
         android:layout_gravity="center_horizontal"
         android:background="@drawable/btn_bg_green_crciry"
         android:textColor="@color/white"
+        android:textAllCaps="false"
         android:text="@string/btn_sure"/>
 </LinearLayout>

@@ -6,8 +6,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
 import android.view.View;
-import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -16,18 +16,16 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import any.xxx.anypeer.R;
 import any.xxx.anypeer.app.BaseActivity;
 import any.xxx.anypeer.manager.ChatManager;
-import any.xxx.anypeer.moudle.main.MainActivity;
+import any.xxx.anypeer.moudle.chat.PayFragment;
+import any.xxx.anypeer.moudle.init.InitActivity;
+import any.xxx.anypeer.util.AnyWallet;
 import any.xxx.anypeer.util.PrefereneceUtil;
 import any.xxx.anypeer.util.Utils;
+import any.xxx.anypeer.widget.PayPwdView;
 import any.xxx.anypeer.widget.supertext.SuperTextView;
 
-public class SettingActivity extends BaseActivity {
-
-    private SuperTextView stvIsPass;
-    private SuperTextView stvInitWallet;
-    private SuperTextView stvClearFriendData;
-    private SuperTextView stvIsMessageShowNotification;
-    private TextView tvLogout;
+public class SettingActivity extends BaseActivity implements PayPwdView.InputCallBack {
+    private PayFragment fragment = new PayFragment();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,12 +35,22 @@ public class SettingActivity extends BaseActivity {
         findViewById(R.id.img_back).setVisibility(View.VISIBLE);
         findViewById(R.id.img_back).setOnClickListener(view -> finish());
         ((TextView) findViewById(R.id.txt_title)).setText(R.string.setting);
+	    SuperTextView stvVersion = findViewById(R.id.tv_version);
 
-        stvIsPass = findViewById(R.id.stv_is_pass);
-        stvInitWallet = findViewById(R.id.stv_init_wallet);
-        stvClearFriendData = findViewById(R.id.stv_clear_friend_data);
-        stvIsMessageShowNotification = findViewById(R.id.stv_is_message_show_notification);
-        tvLogout = findViewById(R.id.tv_logout);
+        try {
+            String version = "AnyPeer V" + getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            stvVersion.setLeftString(version);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+	    SuperTextView stvIsPass = findViewById(R.id.stv_is_pass);
+            SuperTextView stvRenewWallet = findViewById(R.id.stv_renew_wallet);
+	    SuperTextView stvClearFriendData = findViewById(R.id.stv_clear_friend_data);
+	    SuperTextView stvIsMessageShowNotification = findViewById(R.id.stv_is_message_show_notification);
+        SuperTextView stvIsMessageVoice = findViewById(R.id.stv_is_message_voice);
+	    TextView tvLogout = findViewById(R.id.tv_logout);
 
         stvIsPass.setSwitchIsChecked(PrefereneceUtil.getBoolean(SettingActivity.this, Utils.ADD_FRIEND_CHECK));
         stvIsPass.setSwitchCheckedChangeListener((buttonView, isChecked) -> PrefereneceUtil.saveBoolean(SettingActivity.this, Utils.ADD_FRIEND_CHECK, isChecked));
@@ -56,8 +64,18 @@ public class SettingActivity extends BaseActivity {
             ChatManager.getInstance(this).saveIsMessageShowNotification(SettingActivity.this, isChecked);
         });
 
-        stvInitWallet.setOnClickListener(v -> {
-            //TODO
+        stvIsMessageVoice.setSwitchIsChecked(ChatManager.getInstance(this).getIsMessageVoice(this));
+        stvIsMessageVoice.setSwitchCheckedChangeListener((buttonView, isChecked) -> {
+            ChatManager.getInstance(this).saveIsMessageShowVoice(SettingActivity.this, isChecked);
+        });
+
+        fragment.setPaySuccessCallBack(this);
+	    stvRenewWallet.setOnClickListener(v -> {
+            Bundle bundle = new Bundle();
+            bundle.putString(PayFragment.EXTRA_CONTENT, getString(R.string.renew_wallet_warning));
+
+            fragment.setArguments(bundle);
+            fragment.show(getSupportFragmentManager(), getString(R.string.renew_wallet));
         });
 
         stvClearFriendData.setOnClickListener(v -> {
@@ -67,6 +85,48 @@ public class SettingActivity extends BaseActivity {
         tvLogout.setOnClickListener(v -> {
             //TODO
         });
+    }
+
+    @Override
+    public void onInputFinish(String password) {
+        AnyWallet wallet = AnyWallet.getInstance();
+        if (wallet == null) {
+            return;
+        }
+
+        try {
+        	if (!wallet.isValidWallet()) {
+		        Utils.showShortToast(this, getString(R.string.wallet_has_exception));
+		        fragment.dismiss();
+
+		        //Must initialize the wallet at the InitActivity.
+		        PrefereneceUtil.saveBoolean(SettingActivity.this, InitActivity.INIT_USER, false);
+		        startActivity(new Intent(SettingActivity.this, InitActivity.class));
+		        finish();
+	        }
+	        else {
+		        String mnemonic = wallet.exportWalletWithMnemonic(password);
+		        if (mnemonic != null && !mnemonic.isEmpty()) {
+			        if (wallet.destroyWallet()) {
+				        fragment.dismiss();
+
+				        //Must initialize the wallet at the InitActivity.
+				        PrefereneceUtil.saveBoolean(SettingActivity.this, InitActivity.INIT_USER, false);
+				        startActivity(new Intent(SettingActivity.this, InitActivity.class));
+				        finish();
+			        }
+			        else {
+				        Utils.showShortToast(this, "Invalid password (WD).");
+			        }
+		        }
+		        else {
+			        Utils.showShortToast(this, "Invalid password.");
+		        }
+	        }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void checkNotification() {

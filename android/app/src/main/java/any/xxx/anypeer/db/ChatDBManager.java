@@ -3,9 +3,11 @@ package any.xxx.anypeer.db;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
+
 import any.xxx.anypeer.chatbean.ChatConversation;
 import any.xxx.anypeer.chatbean.ChatMessage;
 import io.realm.Realm;
+import io.realm.RealmList;
 
 public class ChatDBManager {
     private static final String TAG = "ChatManager";
@@ -22,8 +24,22 @@ public class ChatDBManager {
             realm.beginTransaction();
             realm.copyToRealmOrUpdate(chatConversation);
             realm.commitTransaction();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-            getAllChatConversaion();
+    public void removeConversation(String userId) {
+        try {
+            Log.d(TAG, "removeConversation " + userId);
+            Realm realm = Realm.getDefaultInstance();
+            realm.beginTransaction();
+            ChatConversation chatConversation = realm.where(ChatConversation.class).equalTo("mUserId", userId).findFirst();
+            if (chatConversation != null) {
+                chatConversation.deleteFromRealm();
+            }
+            realm.commitTransaction();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -63,16 +79,16 @@ public class ChatDBManager {
         }
     }
 
-    public ChatConversation getChatConversaionByUserId(String userId) {
+    public ChatConversation getChatConversationByUserId(String userId) {
         try {
             Realm realm = Realm.getDefaultInstance();
             realm.beginTransaction();
             ChatConversation chatConversation = realm.where(ChatConversation.class).equalTo("mUserId", userId).findFirst();
             realm.commitTransaction();
 
-            if (chatConversation != null) {
-                Log.d(TAG, "getAllChatConversaion " + chatConversation.toString());
-            }
+            // if (chatConversation != null) {
+            //     Log.d(TAG, "getChatConversationByUserId " + chatConversation.toString());
+            // }
 
             return chatConversation;
         }
@@ -82,16 +98,16 @@ public class ChatDBManager {
         return null;
     }
 
-    public List<ChatConversation> getAllChatConversaion() {
+    public List<ChatConversation> getAllChatConversation() {
         try {
             Realm realm = Realm.getDefaultInstance();
             List<ChatConversation> chatConversations = realm.where(ChatConversation.class).findAll();
 
-            for (ChatConversation chatConversation : chatConversations) {
-                Log.d(TAG, chatConversation.toString());
-            }
+            // for (ChatConversation chatConversation : chatConversations) {
+            //     Log.d(TAG, "getAllChatConversation 1, " + chatConversation.toString());
+            // }
 
-            Log.d(TAG, "getAllChatConversaion size=" + chatConversations.size());
+            // Log.d(TAG, "getAllChatConversation size=" + chatConversations.size());
             return realm.copyFromRealm(chatConversations);
         }
         catch (Exception e) {
@@ -133,6 +149,22 @@ public class ChatDBManager {
         }
     }
 
+    public void setGroupMessageName(String msgId, String fromName) {
+        try {
+            Log.d(TAG, "setGroupMessageName " + msgId + " " + fromName);
+            Realm realm = Realm.getDefaultInstance();
+            realm.beginTransaction();
+            ChatMessage msg = realm.where(ChatMessage.class).equalTo("msgId", msgId).findFirst();
+            if (msg != null) {
+                msg.setFromName(fromName);
+            }
+            realm.commitTransaction();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void initChatsSendState() {
         try {
             Log.d(TAG, "setMessageStatus ");
@@ -164,6 +196,24 @@ public class ChatDBManager {
                 }
             }
 
+            realm.commitTransaction();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removeAllMessage(String userId) {
+        try {
+            Realm realm = Realm.getDefaultInstance();
+            realm.beginTransaction();
+            ChatConversation chatConversation = realm.where(ChatConversation.class).equalTo("mUserId", userId).findFirst();
+            if (chatConversation != null) {
+                RealmList<ChatMessage> messages = chatConversation.getmMessages();
+                if (messages != null && !messages.isEmpty()) {
+                    chatConversation.setmMessages(null);
+                }
+            }
             realm.commitTransaction();
         }
         catch (Exception e) {

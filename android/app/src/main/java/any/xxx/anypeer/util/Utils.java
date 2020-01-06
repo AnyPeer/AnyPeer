@@ -25,6 +25,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,8 +37,8 @@ public class Utils {
     public static final String USERID = "userid";
     public static final int START_FRIEND = 30000;
     public static final int BACK_CHAT = 30001;
-    public static final String ROOTPATH = "anychat";
-    public static final String ADDRESS = "anychat_Address";
+    public static final String ROOTPATH = "anypeer";
+    public static final String ADDRESS = "anypeer_Address";
     public static final String QRCODETYPE = "QrCodeType";
     public static final String USER = "user";
     public static final String ADD_FRIEND_CHECK = "add_friend_check";
@@ -47,19 +48,6 @@ public class Utils {
         Carrier_Address,
         Wallet_Address,
         Null_Address
-    }
-
-    public static boolean isSpecialVersion(Context context) {
-        try {
-            if (SPECIALVERSION.equals(context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName)) {
-                return true;
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     public static void showLongToast(Context context, String pMsg) {
@@ -369,4 +357,36 @@ public class Utils {
         }
         return sbu.toString();
     }
+
+    public static boolean checkAppInstalled(Context context, String pkgName) {
+        if (pkgName == null || pkgName.isEmpty()) {
+            return false;
+        }
+        PackageInfo packageInfo;
+        try {
+            packageInfo = context.getPackageManager().getPackageInfo(pkgName, 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            packageInfo = null;
+            e.printStackTrace();
+        }
+        if (packageInfo == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+	public static boolean isCN(Context context) {
+    	try {
+		    Locale locale = context.getResources().getConfiguration().locale;
+		    String language = locale.getLanguage();
+		    if (language.endsWith("zh")) {
+			    return true;
+		    }
+	    }
+	    catch (Exception e) {
+    		e.printStackTrace();
+	    }
+	    return false;
+	}
 }

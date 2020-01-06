@@ -72,7 +72,7 @@ public class FriendManager {
             return realm.copyFromRealm(users).get(0);
         }
         catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
         return null;
     }
@@ -145,6 +145,19 @@ public class FriendManager {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public String getUserNameByAddress(String address) {
+        try {
+            Realm realm = Realm.getDefaultInstance();
+            List<User> users = realm.where(User.class).equalTo("walletAddress", address).findAll();
+
+            return realm.copyFromRealm(users).get(0).getUserName();
+        }
+        catch (Exception e) {
+            // e.printStackTrace();
+        }
+        return null;
     }
 
     public void updateUserIsOnline(String userId, boolean isOnline) {

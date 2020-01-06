@@ -2,14 +2,25 @@
     <string name="app_name">AnyPeer</string>
     <string name="chat_title">AnyPeer</string>
     <string name="contacts">Contacts</string>
+    <string name="rank">Nodes</string>
     <string name="me">Me</string>
     <string name="no_msg">No new news</string>
     <string name="wallet">Wallet</string>
     <string name="settings">Settings</string>
+    <string name="value">Vote:</string>
+    <string name="num">Ratio:</string>
+    <string name="rank_title">Rank:</string>
+    <string name="node_title">Elastos Nodes</string>
+    <string name="load_end">No more data</string>
+    <string name="load_failed">Load failed, click to reload</string>
+    <string name="loading">"Loading&#8230;"</string>
 
-    <string name="menu_addfriend">Add Contacts</string>
+    <string name="menu_friend_already">You are already friends</string>
+    <string name="menu_addfriend">Add a Friend</string>
     <string name="menu_qrcode">Scan</string>
     <string name="menu_receiptaddress">ELA Address</string>
+    <string name="menu_mychataddress">My Contact Address</string>
+    <string name="menu_transferto">ELA Transfer To</string>
     <string name="qrcode_text_1">Align the QR Code within the frame to scan</string>
 
     <string name="asterisk">*</string>
@@ -33,14 +44,28 @@
     <string name="mine">Mine</string>
     <string name="my_carrier_address">My Contact Address</string>
 
+    <string-array name="array_firend">
+        <item>@string/friend_detail_deletefriend</item>
+    </string-array>
+    <string-array name="array_message">
+        <item>@string/delete_message</item>
+    </string-array>
+    <string name="is_delete_all_message">Delete all messages?</string>
+
+    <string name="update_title">update version tip</string>
+    <string name="not_install_gp">Please install Google Play to update APP.</string>
+
     <!-- About wallet-->
     <string name="wallet_backup">Backup</string>
     <string name="wallet_backupmnemonic">Backup Mnemonic</string>
     <string name="wallet_inamount">Income</string>
+    <string name="wallet_inamount_from">From: </string>
     <string name="wallet_outamount">Pay</string>
+    <string name="wallet_outamount_to">To: </string>
     <string name="wallet_confirmed">Confirmed</string>
     <string name="wallet_totalasset">Total assets(ELA)</string>
     <string name="wallet_record">Transaction record</string>
+    <string name="wallet_has_exception">Wallet has exception, Recovery or Recreate one</string>
     <string name="content_copyed">Copied</string>
     <string name="longpressto_copy">*Long press QR Code to copy it*</string>
 
@@ -56,6 +81,8 @@
     <string name="transfer_to">Transfer to: </string>
     <string name="transfer_amount_balance">Transfer amount (Balance: %1$s ELA)</string>
     <string name="transfer_amount_least">At least 0.0001 ELA</string>
+    <string name="transfer_ela_address">ELA address</string>
+    <string name="transfer_friend_address_invalid">"The Friend's wallet is invalid"</string>
 
     <!-- About main-->
     <string name="newmsg_recvtransfer">[Transfer]</string>
@@ -73,7 +100,7 @@
     <string name="chat_file_type_2">Album</string>
     <string name="chat_file_type_3">Camera</string>
     <string name="resend">Resend</string>
-    <string name="delete_message">Delete the message</string>
+    <string name="delete_message">Delete the Chat</string>
     <string name="copy_message">Copy the message</string>
     <string name="move_up_to_cancel">Slip your finger and cancel sending</string>
     <string name="release_to_cancel">Release your finger and cancel sending</string>
@@ -88,7 +115,7 @@
     <string name="friend_request_apply_2"> </string>
 
     <string name="friend_detail_sendmsg">Messages</string>
-    <string name="friend_detail_deletefriend">Delete</string>
+    <string name="friend_detail_deletefriend">Delete the friend</string>
     <string name="friend_detail_delete_ask">Delete the friend:  </string>
 
     <!-- friend add-->
@@ -118,7 +145,7 @@
         <item>@string/tr_radio_op3</item>
     </string-array>
 
-    <string name="input_pay_password">请输入支付密码</string>
+    <string name="input_pay_password">Pay Password</string>
 
     <string name="delivered">Sent</string>
     <string name="delivering">Sending</string>
@@ -127,8 +154,8 @@
     <!-- robot-->
     <string name="robot_offline">Asleep</string>
     <string name="robot_online">Wake up</string>
-    <string name="smart_reboot">Half Robot</string>
-    <string name="apply_test_money">Apply Test ELA</string>
+    <string name="smart_reboot">Anybot</string>
+    <string name="apply_lottery">Lottery</string>
     <string name="apply_success">Application success</string>
     <string name="apply_fail">Application failure</string>
     <string name="btn_sure">OK</string>
@@ -144,8 +171,9 @@
     <string name="applyreslut_invalidaddress">Sorry, your wallet address is invalid</string>
     <string name="applyreslut_applied">Sorry, you have already applied.</string>
     <string name="applyreslut_noela">Sorry, i spent my ELA</string>
-    <string name="applyreslut_ela">Congratulations. Please check your wallet later.</string>
+    <string name="applyreslut_ela">Congratulations, you got: %1$s ELA</string>
     <string name="applyreslut_tryagain">There may be a network error. Please try again later.</string>
+    <string name="applyreslut_lottery_limit">Sorry, you must have 2 friends first</string>
 
     <string name="open_notification_dialog">Please open notification permission manually to receive information</string>
     <string name="complite_user_info">Perfecting personal data</string>
@@ -153,7 +181,10 @@
 
     <string name="is_jion_friend_auto_pass">Friend Confirmation</string>
     <string name="is_message_show_notification">Show Message Notifications</string>
-    <string name="init_wallet">Regenerate Wallet</string>
+    <string name="is_message_voice">Message Voice</string>
+    <string name="renew_wallet">Regenerate Wallet</string>
+    <string name="renew_wallet_warning">If the old wallet has ela, Backup first</string>
+    <string name="wallet_sync">Wallet Sync: </string>
     <string name="clear_friend_data">Clear All Friends Data</string>
 
     <!-- time-->
@@ -174,4 +205,19 @@
     <string name="btn_text_speak_over">Release to cancel</string>
 
     <string name="unread_number">Unread: %1$s </string>
+
+    <!-- group -->
+    <string name="group_info">Group Info</string>
+    <string name="group_name">Group Name</string>
+    <string name="join_default_group">Joining the default AnyGroup</string>
+    <string name="wait_carrier_ready">Joining the Carrier Network</string>
+    <string name="group_announcement">Make it happen</string>
+    <string name="claer_group_message">Clear Group Message</string>
+    <string name="deleta_and_exit_group">Delete And Exit Group</string>
+    <string name="group_clear_message">Clear All Message?</string>
+    <string name="group_message_dht_error">"DHT Error, restart the App can resolve it"</string>
+    <string name="group_forbidden_message">"Forbidden, Can't Send message. Restart"</string>
+    <string name="anybot_auto_hi">Hi, i am AnyBot</string>
+    <string name="anybot_auto_offline">The developer is offline, you can add him as a friend</string>
+    <string name="group_message_upsupport">Not support this message type, please check update</string>
 </resources>

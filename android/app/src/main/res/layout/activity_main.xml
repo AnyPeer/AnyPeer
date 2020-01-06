@@ -8,6 +8,27 @@
         android:id="@+id/layout_bar"
         layout="@layout/layout_title" />
 
+    <LinearLayout
+        android:id="@+id/ll_loading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="@dimen/dp_10">
+
+        <ImageView
+            android:id="@+id/iv_loading"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:src="@drawable/icon_loading_small" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textSize="12sp"
+            android:text="@string/join_default_group"
+            android:textColor="@color/orange1"/>
+    </LinearLayout>
+
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="fill_parent"

@@ -197,7 +197,7 @@ public class FriendDetailActivity extends BaseActivity implements MessageService
     }
 
     @Override
-    public void callback() {
+    public void callback(boolean isGoMain) {
         finish();
     }
 }

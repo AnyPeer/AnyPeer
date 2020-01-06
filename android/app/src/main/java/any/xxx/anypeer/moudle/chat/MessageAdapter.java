@@ -5,7 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
+// import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,16 +20,12 @@ import com.bumptech.glide.Glide;
 import org.elastos.carrier.UserInfo;
 
 import java.util.Date;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Timer;
 
 import any.xxx.anypeer.R;
-import any.xxx.anypeer.bean.EMConversation;
-import any.xxx.anypeer.bean.EMMessage;
 import any.xxx.anypeer.bean.User;
 import any.xxx.anypeer.chatbean.ChatConversation;
 import any.xxx.anypeer.chatbean.ChatMessage;
+import any.xxx.anypeer.db.ChatDBManager;
 import any.xxx.anypeer.db.FriendManager;
 import any.xxx.anypeer.moudle.common.PhotoActivity;
 import any.xxx.anypeer.util.DateUtils;
@@ -83,7 +79,7 @@ public class MessageAdapter extends BaseAdapter {
     }
 
     private View createViewByMessage(ChatMessage message, int position) {
-        Log.d(TAG, position + " " + ChatMessage.Direct.getMsgDirect(message.getDirect()));
+        // Log.d(TAG, position + " " + ChatMessage.Direct.getMsgDirect(message.getDirect()));
 
         if (ChatMessage.Direct.getMsgDirect(message.getDirect()) == ChatMessage.Direct.RECEIVE) {
             switch (ChatMessage.Type.getMsgType(message.getType())) {
@@ -121,6 +117,7 @@ public class MessageAdapter extends BaseAdapter {
         convertView = createViewByMessage(message, position);
 
         try {
+            holder.tv_name = convertView.findViewById(R.id.tv_name);
             holder.iv = convertView.findViewById(R.id.iv_userhead);
             holder.tv = convertView.findViewById(R.id.tv_chatcontent);
             holder.tv_userId = convertView.findViewById(R.id.tv_userid);
@@ -137,17 +134,47 @@ public class MessageAdapter extends BaseAdapter {
         switch (ChatMessage.Type.getMsgType(message.getType())) {
             case TXT:
                 try {
-                    holder.tv.setText(message.getMessage());
-                    holder.tv.setOnLongClickListener(v -> {
-                        ((Activity) mContext).startActivityForResult(
-                                (new Intent(mContext, ContextMenuActivity.class)).putExtra("position", position)
-                                        .putExtra("type", ChatMessage.Type.TXT.ordinal())
-                                        .putExtra("isRetry", ChatMessage.Status.getMsgStatus(message.getStatus()) == ChatMessage.Status.FAIL),
-                                ChatActivity.REQUEST_CODE_CONTEXT_MENU);
-                        return true;
-                    });
-                } catch (Exception e) {
+                    if (mConversation.isGroup() && ChatMessage.Direct.getMsgDirect(message.getDirect()) == ChatMessage.Direct.RECEIVE) {
+                        // Show the peer name
 
+                        if (TextUtils.isEmpty(message.getFromName())) {
+                            String fromName = NetUtils.getInstance().peerName(mConversation.getmUserId(), message.getFromId());
+                            ChatDBManager.getInstance().setGroupMessageName(message.getMsgId(), fromName);
+                            holder.tv_name.setText(fromName);
+                        } else {
+                            holder.tv_name.setText(message.getFromName());
+                        }
+                    }
+
+                    final boolean retry = ChatMessage.Status.getMsgStatus(message.getStatus()) == ChatMessage.Status.FAIL;
+                    String strMessage = message.getMessage();
+                    holder.tv.setText(strMessage);
+
+                    if (mConversation.isGroup()) {
+                        holder.tv.setOnLongClickListener(v -> {
+                            ((Activity) mContext).startActivityForResult(
+                                    (new Intent(mContext, ContextMenuActivity.class)).putExtra("position", position)
+                                            .putExtra("type", ChatMessage.Type.TXT.ordinal())
+                                            .putExtra("isRetry", false)
+                                            .putExtra("isGroup", true)
+                                            .putExtra("message", strMessage),
+                                    ChatActivity.REQUEST_CODE_CONTEXT_MENU);
+                            return true;
+                        });
+                    }
+                    else {
+                        holder.tv.setOnLongClickListener(v -> {
+                            ((Activity) mContext).startActivityForResult(
+                                    (new Intent(mContext, ContextMenuActivity.class)).putExtra("position", position)
+                                            .putExtra("type", ChatMessage.Type.TXT.ordinal())
+                                            .putExtra("isRetry", retry)
+                                            .putExtra("isGroup", false),
+                                    ChatActivity.REQUEST_CODE_CONTEXT_MENU);
+                            return true;
+                        });
+                    }
+                } catch (Exception e) {
+                    //
                 }
 
                 break;
@@ -277,19 +304,24 @@ public class MessageAdapter extends BaseAdapter {
 
         if (ChatMessage.Direct.getMsgDirect(message.getDirect()) == ChatMessage.Direct.SEND
                 && ChatMessage.Status.getMsgStatus(message.getStatus()) != null) {
-            Log.d(TAG, ChatMessage.Status.getMsgStatus(message.getStatus()) + "");
-            switch (ChatMessage.Status.getMsgStatus(message.getStatus())) {
-                case SUCCESS:
-                    holder.tv_delivered.setText(mContext.getString(R.string.delivered));
-                    break;
+            // Log.d(TAG, ChatMessage.Status.getMsgStatus(message.getStatus()) + "");
+            if (mConversation.isGroup()) {
+                holder.tv_delivered.setVisibility(View.GONE);
+            }
+            else {
+                switch (ChatMessage.Status.getMsgStatus(message.getStatus())) {
+                    case SUCCESS:
+                        holder.tv_delivered.setText(mContext.getString(R.string.delivered));
+                        break;
 
-                case INPROGRESS:
-                    holder.tv_delivered.setText(mContext.getString(R.string.delivering));
-                    break;
+                    case INPROGRESS:
+                        holder.tv_delivered.setText(mContext.getString(R.string.delivering));
+                        break;
 
-                case FAIL:
-                    holder.tv_delivered.setText(mContext.getString(R.string.undelivered));
-                    break;
+                    case FAIL:
+                        holder.tv_delivered.setText(mContext.getString(R.string.undelivered));
+                        break;
+                }
             }
         }
 
@@ -313,20 +345,25 @@ public class MessageAdapter extends BaseAdapter {
             }
         }
         else {
-            if (!TextUtils.isEmpty(user.getGender())) {
-                switch (user.getGender()) {
-                    case "0":
-                        Glide.with(mContext).load(R.drawable.icon_man_header).into(holder.iv);
-                        break;
-                    case "1":
-                        Glide.with(mContext).load(R.drawable.icon_women_header).into(holder.iv);
-                        break;
-                    default:
-                        Glide.with(mContext).load(R.drawable.icon_default).into(holder.iv);
-                        break;
-                }
-            } else {
+            if (mConversation.isGroup()) {
                 Glide.with(mContext).load(R.drawable.icon_default).into(holder.iv);
+            }
+            else {
+                if (!TextUtils.isEmpty(user.getGender())) {
+                    switch (user.getGender()) {
+                        case "0":
+                            Glide.with(mContext).load(R.drawable.icon_man_header).into(holder.iv);
+                            break;
+                        case "1":
+                            Glide.with(mContext).load(R.drawable.icon_women_header).into(holder.iv);
+                            break;
+                        default:
+                            Glide.with(mContext).load(R.drawable.icon_default).into(holder.iv);
+                            break;
+                    }
+                } else {
+                    Glide.with(mContext).load(R.drawable.icon_default).into(holder.iv);
+                }
             }
         }
 
@@ -358,6 +395,7 @@ public class MessageAdapter extends BaseAdapter {
         ImageView iv_pic;
         ImageView iv_voice;
         TextView tv_money;
+        TextView tv_name;
     }
 
     public interface HeaderOnClick {

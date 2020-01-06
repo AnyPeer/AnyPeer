@@ -43,12 +43,25 @@
         android:background="#e7e7e7" />
 
     <any.xxx.anypeer.widget.supertext.SuperTextView
-        android:id="@+id/stv_init_wallet"
+        android:id="@+id/stv_is_message_voice"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         app:sDividerLineType="none"
-        android:visibility="gone"
-        app:sLeftTextString="@string/init_wallet" />
+        app:sLeftTextString="@string/is_message_voice"
+        app:sRightViewType="switchBtn" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#e7e7e7" />
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/stv_renew_wallet"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:sDividerLineType="none"
+        app:sLeftTextColor="@color/red"
+        app:sLeftTextString="@string/renew_wallet" />
 
     <View
         android:layout_width="match_parent"
@@ -90,6 +103,16 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:visibility="gone"
+        android:background="#e7e7e7" />
+
+    <any.xxx.anypeer.widget.supertext.SuperTextView
+        android:id="@+id/tv_version"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:sDividerLineType="none" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
         android:background="#e7e7e7" />
 </LinearLayout>

@@ -1,6 +1,9 @@
 package any.xxx.anypeer.util;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import com.elastos.spvcore.DIDManagerSupervisor;
@@ -24,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,7 +37,6 @@ public class AnyWallet {
 	private MasterWalletManager mMasterWalletManager;
 	private DIDManagerSupervisor mDIDManagerSupervisor;
 	private IMasterWallet mCurrentMasterWallet;
-	private ArrayList<IMasterWallet> mMasterWalletList;
 	private IDidManager mDidManager;
 	private static AnyWallet sInstance;
 	private static String mRootPath;
@@ -43,9 +46,10 @@ public class AnyWallet {
 	public static final String ELA = "ELA";
 	private static final String IDCHAIN = "IdChain";
 	public static final String MNEMONIC = "mnemonic";
-	public static final String DID = "anyWallet_did";
+	private static final String DID = "anyWallet_did";
 	private ISubWallet mELASubWallet;
 	private Context mContext;
+	public final static String ANYBOT_ELAADDRESS = "EbnPZTrrUpMcLmsxmi68kgQuUWDv1PV6Ng";
 
 	public static AnyWallet getInstance(Context context) {
 		if (sInstance == null) {
@@ -77,7 +81,7 @@ public class AnyWallet {
 		try {
 			if (password == null || password.isEmpty()) {
 				//1.restore MasterWallet
-				mMasterWalletList = mMasterWalletManager.GetAllMasterWallets();
+				ArrayList<IMasterWallet> mMasterWalletList = mMasterWalletManager.GetAllMasterWallets();
 				if (mMasterWalletList != null && mMasterWalletList.size() > 0) {
 					mCurrentMasterWallet = mMasterWalletList.get(0);
 					ArrayList<ISubWallet> subWallets = mCurrentMasterWallet.GetAllSubWallets();
@@ -141,13 +145,13 @@ public class AnyWallet {
 			}
 
 			//1. CreateTransaction(String fromAddress, String toAddress, long amount, String memo, String remark)
-			String rawTransaction = mELASubWallet.CreateTransaction(getWalletAddress(), address, amount, memo, "");
+			String rawTransaction = mELASubWallet.CreateTransaction(getWalletAddress(), address, amount, memo, "Remark", false);
 
 			//2. CalculateTransactionFee(String rawTransaction, long feePerKb)
 			long fee = mELASubWallet.CalculateTransactionFee(rawTransaction, FeePerKb);
 
 			//3. UpdateTransactionFee(String rawTransaction, long fee)
-			rawTransaction = mELASubWallet.UpdateTransactionFee(rawTransaction, fee);
+			rawTransaction = mELASubWallet.UpdateTransactionFee(rawTransaction, fee, "");
 
 			//4. SignTransaction(String rawTransaction, String payPassword)
 			password = getRealPassword(password);
@@ -223,7 +227,7 @@ public class AnyWallet {
 				throw new RuntimeException("mELASubWallet======null");
 			}
 
-			return mELASubWallet.GetBalance();
+			return mELASubWallet.GetBalance(0);
 		} catch (WalletException e) {
 			e.printStackTrace();
 		}
@@ -284,9 +288,9 @@ public class AnyWallet {
 		}
 	}
 
-	public String getAllTransaction() {
+	private String getAllTransaction() {
 		try {
-			return mELASubWallet.GetAllTransaction(0, 100, "");
+			return mELASubWallet.GetAllTransaction(0, 200, getWalletAddress());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -304,68 +308,78 @@ public class AnyWallet {
 		public long mOutAmount;
 		public String mStatus;
 		public String mTxHash;
+		public String mOtherAddress;
 	}
 
 	public List<TransactionItem> getAllTransactionItems() {
 		List<TransactionItem> transactionItems = null;
 		try {
 			String transactions = getAllTransaction();
+			if (transactions == null) return null;
+
 			JSONObject jsonObject = new JSONObject(transactions);
 			//1. MaxCount: int
 			int MaxCount = jsonObject.getInt(TRANSACTIONKEY.MaxCount);
-			transactionItems = new ArrayList<TransactionItem>(MaxCount);
+			transactionItems = new ArrayList<>(MaxCount);
 
 			//2. Transactions: JSONArray
 			JSONArray transactionsJsonArray = jsonObject.getJSONArray(TRANSACTIONKEY.Transactions);
-			Log.d(TAG, String.format("MaxCount=[%d], transactionsJsonArrayLen=[%d]", MaxCount, transactionsJsonArray.length()));
+//			Log.d(TAG, String.format("MaxCount=[%d], transactionsJsonArrayLen=[%d]", MaxCount, transactionsJsonArray.length()));
+//			Log.d(TAG, "transactionsJsonArray="+transactionsJsonArray.toString());
 			for (int i = 0; i < transactionsJsonArray.length(); i++) {
 				//3. Summary: JSONObject
-				JSONObject summarysJson = transactionsJsonArray.getJSONObject(i);
-				if (summarysJson != null) {
+				JSONObject summaryContentJson = transactionsJsonArray.getJSONObject(i);
+//				Log.d(TAG, "summaryContentJson="+summaryContentJson);
+				if (summaryContentJson != null) {
 					//4. Summary content: JSONObject
-					JSONObject summaryContentJson = summarysJson.getJSONObject(TRANSACTIONKEY.Summary);
-					if (summaryContentJson != null) {
-						TransactionItem item = new TransactionItem();
+					TransactionItem item = new TransactionItem();
 
-						//4.1 ConfirmStatus: String
-						String ConfirmStatus = summaryContentJson.getString(TRANSACTIONKEY.SUMMARY.ConfirmStatus);
-						item.mConfirmStatus = ConfirmStatus;
+					//4.1 ConfirmStatus: String
+					String ConfirmStatus = summaryContentJson.getString(TRANSACTIONKEY.SUMMARY.ConfirmStatus);
+					item.mConfirmStatus = ConfirmStatus;
 
-						//4.2 Fee: int
-						int Fee = summaryContentJson.getInt(TRANSACTIONKEY.SUMMARY.Fee);
+					//4.2 Fee: int
+//						int Fee = summaryContentJson.getInt(TRANSACTIONKEY.SUMMARY.Fee);
 
-						//4.3 Incoming: JSONObject
-						JSONObject Incoming = summaryContentJson.getJSONObject(TRANSACTIONKEY.SUMMARY.Incoming);
-						//4.3.1 Amount: long
-						long Amount = Incoming.getLong(TRANSACTIONKEY.SUMMARY.Amount);
+					//4.3 Direction: JSONObject
+					long Amount = summaryContentJson.getLong(TRANSACTIONKEY.SUMMARY.Amount);
+					String Direction = summaryContentJson.getString(TRANSACTIONKEY.SUMMARY.Direction);
+					if (Direction.equals("Received")) {
 						item.mInAmount = Amount;
-
-						//4.4 Outcoming: JSONObject
-						JSONObject Outcoming = summaryContentJson.getJSONObject(TRANSACTIONKEY.SUMMARY.Outcoming);
-						//4.3.1 Amount: long
-						Amount = Outcoming.getLong(TRANSACTIONKEY.SUMMARY.Amount);
-						item.mOutAmount = Amount;
-
-						//4.5 Remark: String
-						String Remark = summaryContentJson.getString(TRANSACTIONKEY.SUMMARY.Remark);
-
-						//4.6 Status: String
-						String Status = summaryContentJson.getString(TRANSACTIONKEY.SUMMARY.Status);
-						item.mStatus = Status;
-
-						//4.7 Timestamp: long
-						long Timestamp = summaryContentJson.getLong(TRANSACTIONKEY.SUMMARY.Timestamp);
-						item.mTransactionTime = getDateToString(Timestamp);
-
-						//4.8 TxHash: String
-						String TxHash = summaryContentJson.getString(TRANSACTIONKEY.SUMMARY.TxHash);
-						item.mTxHash = TxHash;
-
-						Log.d(TAG, String.format("ConfirmStatus=[%s], Fee=[%d], inAmount=[%d], Remark=[%s], Status=[%s], TxHash=[%s], time=[%s]"
-								, ConfirmStatus, Fee, Amount, Remark, Status, TxHash, getDateToString(Timestamp)));
-
-						transactionItems.add(item);
 					}
+					else {
+						item.mOutAmount = Amount;
+					}
+
+					//4.4 Status: String
+					String Status = summaryContentJson.getString(TRANSACTIONKEY.SUMMARY.Status);
+					item.mStatus = Status;
+
+					//4.5 Timestamp: long
+					long Timestamp = summaryContentJson.getLong(TRANSACTIONKEY.SUMMARY.Timestamp);
+					item.mTransactionTime = getDateToString(Timestamp);
+
+					//4.6 TxHash: String
+					String TxHash = summaryContentJson.getString(TRANSACTIONKEY.SUMMARY.TxHash);
+					item.mTxHash = TxHash;
+
+					//4.7 mOtherAddress
+					if (summaryContentJson.has(TRANSACTIONKEY.SUMMARY.Outputs)) {
+						JSONObject Outputs = summaryContentJson.getJSONObject(TRANSACTIONKEY.SUMMARY.Outputs);
+						Iterator<String> iterator = Outputs.keys();
+						while (iterator.hasNext()) {
+							String address = iterator.next();
+							if (address != null && !address.isEmpty() && !address.equals(getWalletAddress())) {
+								item.mOtherAddress = address;
+								break;
+							}
+						}
+					}
+
+					Log.d(TAG, String.format("ConfirmStatus=[%s], inAmount=[%d], Status=[%s], TxHash=[%s], time=[%s], mOtherAddress=[%s]"
+							, ConfirmStatus, Amount, Status, TxHash, getDateToString(Timestamp), item.mOtherAddress));
+
+					transactionItems.add(item);
 				}
 			}
 		}
@@ -390,14 +404,13 @@ public class AnyWallet {
 		private static class SUMMARY {
 			private static final String ConfirmStatus = "ConfirmStatus";
 			private static final String Fee = "Fee";
-			private static final String Incoming = "Incoming";
-			private static final String Outcoming = "Outcoming";
-			private static final String Remark = "Remark";
+			private static final String Remark = "Any Remark";
 			private static final String Status = "Status";
 			private static final String Timestamp = "Timestamp";
 			private static final String TxHash = "TxHash";
-
+			private static final String Direction = "Direction";
 			private static final String Amount = "Amount";
+			private static final String Outputs = "Outputs";
 		}
 	}
 
@@ -406,13 +419,18 @@ public class AnyWallet {
 		return (double) sela / BASE_TRANSFER;
 	}
 
+	public static String TOELAS(long sela) {
+		return String.format(Locale.US, "%.4f", TOELA(sela));
+	}
+
 	private ISubWallet recoverSubWallet(String chainID, int limitGap, long feePerKb) {
 		try {
 			if (mCurrentMasterWallet == null) {
 				return null;
 			}
 
-			return mCurrentMasterWallet.RecoverSubWallet(chainID, limitGap, feePerKb);
+			//TODO
+//			return mCurrentMasterWallet.RecoverSubWallet(chainID, limitGap, feePerKb);
 		} catch (WalletException e) {
 			e.printStackTrace();
 		}
@@ -432,61 +450,124 @@ public class AnyWallet {
 		return null;
 	}
 
+	private Handler mHandler;
+	public void setMessageHandler(Handler handler) {
+		mHandler = handler;
+	}
+
+	public static class WalletCallback {
+		//Message type
+		public static final int TransactionStatusChanged = 0;
+		public static final int BlockSyncStarted = 1;
+		public static final int BlockSyncProgress = 2;
+		public static final int BlockSyncStopped = 3;
+		public static final int BalanceChanged = 4;
+		public static final int TxPublished = 5;
+		public static final int TxDeleted = 6;
+
+		//Message data string
+		public static final String SYNCCURRENTHEIGHT = "currentBlockHeight";
+		public static final String SYNCESTIMATEHEIGHT = "estimatedHeight";
+	}
+
 	private class SubWalletCallback implements ISubWalletCallback {
 		@Override
 		public void OnTransactionStatusChanged(String txId, String status, String desc,int confirms) {
 			//TODO
 			Log.d(TAG, String.format("OnTransactionStatusChanged txId=[%s], status=[%s], desc=[%s], confirms=[%d]"
 					, txId, status, desc, confirms));
+			if (mHandler != null) {
+				mHandler.sendEmptyMessage(WalletCallback.TransactionStatusChanged);
+			}
 		}
 
 		@Override
 		public void OnBlockSyncStarted() {
 			//TODO
 			Log.d(TAG, "OnBlockSyncStarted");
+			if (mHandler != null) {
+				mHandler.sendEmptyMessage(WalletCallback.BlockSyncStarted);
+			}
 		}
 
 		@Override
-		public void OnBlockHeightIncreased(int currentBlockHeight, int progress) {
-			//TODO
-//			Log.d(TAG, String.format("OnBlockHeightIncreased  currentBlockHeight=[%d], progress=[%d]"
-//					, currentBlockHeight, progress));
+		public void OnBlockSyncProgress(int currentBlockHeight, int estimatedHeight) {
+			Log.d(TAG, String.format("OnBlockSyncProgress: %d/%d", currentBlockHeight, estimatedHeight));
+			if (mHandler != null) {
+				Message msg = new Message();
+				msg.what = WalletCallback.BlockSyncProgress;
+				Bundle data = new Bundle();
+				data.putInt(WalletCallback.SYNCCURRENTHEIGHT, currentBlockHeight);
+				data.putInt(WalletCallback.SYNCESTIMATEHEIGHT, estimatedHeight);
+				msg.setData(data);
+				mHandler.sendMessage(msg);
+			}
 		}
 
 		@Override
 		public void OnBlockSyncStopped() {
 			//TODO
 			Log.d(TAG, "OnBlockSyncStopped");
+			if (mHandler != null) {
+				mHandler.sendEmptyMessage(WalletCallback.BlockSyncStopped);
+			}
 		}
 
 		@Override
-		public void OnBalanceChanged(long balance) {
+		public void OnBalanceChanged(String asset, long balance) {
 			//TODO
-			Log.d(TAG, "OnBalanceChanged  balance="+balance);
+			Log.d(TAG, "OnBalanceChanged  balance="+balance + ", asset="+asset);
+			if (mHandler != null) {
+				mHandler.sendEmptyMessage(WalletCallback.BalanceChanged);
+			}
+		}
+
+		@Override
+		public void OnTxPublished(String hash, String result) {
+			//TODO
+			Log.d(TAG, "OnTxPublished");
+			if (mHandler != null) {
+				mHandler.sendEmptyMessage(WalletCallback.TxPublished);
+			}
+		}
+
+		@Override
+		public void OnTxDeleted(String hash, boolean notifyUser, boolean recommendRescan) {
+			//TODO
+			Log.d(TAG, "OnTxDeleted");
+			if (mHandler != null) {
+				mHandler.sendEmptyMessage(WalletCallback.TxDeleted);
+			}
 		}
 	}
 
-	private void destroyWallet(String masterWalletID) {
-		Map<String, ArrayList<ISubWallet>> subWalletMap = new HashMap<String, ArrayList<ISubWallet>>();
-		ArrayList<IMasterWallet> masterWalletList = mMasterWalletManager.GetAllMasterWallets();
-		for (int i = 0; i < masterWalletList.size(); i++) {
-			IMasterWallet masterWallet = masterWalletList.get(i);
-			subWalletMap.put(masterWallet.GetId(), masterWallet.GetAllSubWallets());
-		}
-
-//		IDidManager DIDManager = getDIDManager(masterWalletID);
-//		if (DIDManager != null) {
-//			// TODO destroy did manager
-//		}
-		mMasterWalletManager.DestroyWallet(masterWalletID);
-
-		for (Map.Entry<String, ArrayList<ISubWallet>> entry : subWalletMap.entrySet()) {
-			Log.i(TAG, "Removing masterWallet[" + entry.getKey() + "]'s callback");
-			ArrayList<ISubWallet> subWallets = entry.getValue();
-			for (int i = 0; i < subWallets.size(); i++) {
-				subWallets.get(i).RemoveCallback();
+	public boolean destroyWallet() {
+		try {
+			Map<String, ArrayList<ISubWallet>> subWalletMap = new HashMap<>();
+			ArrayList<IMasterWallet> masterWalletList = mMasterWalletManager.GetAllMasterWallets();
+			for (int i = 0; i < masterWalletList.size(); i++) {
+				IMasterWallet masterWallet = masterWalletList.get(i);
+				subWalletMap.put(masterWallet.GetId(), masterWallet.GetAllSubWallets());
 			}
+
+			mMasterWalletManager.DestroyWallet(mMasterWalletId);
+
+			for (Map.Entry<String, ArrayList<ISubWallet>> entry : subWalletMap.entrySet()) {
+				Log.i(TAG, "Removing masterWallet[" + entry.getKey() + "]'s callback");
+				ArrayList<ISubWallet> subWallets = entry.getValue();
+				for (int i = 0; i < subWallets.size(); i++) {
+					subWallets.get(i).RemoveCallback();
+				}
+			}
+
+			sInstance = null;
 		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
 	}
 
 	private boolean importWalletWithKeystore(String masterWalletID, String keystoreContent, String backupPassword, String payPassword) {
@@ -548,6 +629,10 @@ public class AnyWallet {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public boolean isValidWallet() {
+		return mCurrentMasterWallet != null && mELASubWallet != null;
 	}
 
 	private String encodeTransactionToString(String txJson) {

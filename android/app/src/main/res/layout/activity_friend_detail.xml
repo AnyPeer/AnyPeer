@@ -79,6 +79,7 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:background="@color/white"
+        android:textAllCaps="false"
         android:text="@string/friend_detail_sendmsg"/>
 
     <View
@@ -91,5 +92,6 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:background="@color/white"
+        android:textAllCaps="false"
         android:text="@string/friend_detail_deletefriend"/>
 </LinearLayout>

@@ -12,6 +12,8 @@ public class ChatConversation extends RealmObject {
 
     private String mWalletAddress;
     private RealmList<ChatMessage> mMessages;
+    private boolean isGroup;
+    private String groupName;
 
     @Ignore
     private int mUnreadMsgCount = 0;
@@ -66,6 +68,22 @@ public class ChatConversation extends RealmObject {
         }
 
         return mUnreadMsgCount;
+    }
+
+    public boolean isGroup() {
+        return isGroup;
+    }
+
+    public void setGroup(boolean group) {
+        isGroup = group;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     @Override

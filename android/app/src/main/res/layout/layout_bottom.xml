@@ -112,6 +112,36 @@
         </RelativeLayout>
 
         <RelativeLayout
+            android:id="@+id/re_rank_list"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="3dp">
+
+            <ImageView
+                android:id="@+id/ib_rank"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_centerHorizontal="true"
+                android:background="#ffffff"
+                android:focusable="false"
+                android:scaleType="centerInside"
+                android:src="@drawable/tab_rank_list" />
+
+            <TextView
+                android:id="@+id/tv_rank"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/ib_rank"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="3dp"
+                android:text="@string/rank"
+                android:textColor="#9A9A9A"
+                android:textSize="12sp" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
             android:id="@+id/re_profile"
             android:layout_width="0dp"
             android:layout_height="match_parent"

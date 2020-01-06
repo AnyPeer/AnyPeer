@@ -54,7 +54,8 @@ public class FileTransfer {
 	private FileTransfer(Carrier carrier) {
 		mCarrier = carrier;
 		try {
-			mSessionManager = Manager.getInstance(carrier, sSessionHandler);
+			Manager.initializeInstance(carrier, sSessionHandler);
+			mSessionManager = Manager.getInstance();
 		}
 		catch (CarrierException e) {
 			e.printStackTrace();

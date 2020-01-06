@@ -53,6 +53,7 @@ public class PayFragment extends DialogFragment implements View.OnClickListener 
 
             if (!TextUtils.isEmpty(bundle.getString(EXTRA_CONTENT))) {
                 tv_content.setText(bundle.getString(EXTRA_CONTENT));
+                tv_content.setTextColor(Color.RED);
             } else {
                 tv_content.setVisibility(View.GONE);
             }

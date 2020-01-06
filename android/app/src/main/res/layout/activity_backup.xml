@@ -78,5 +78,6 @@
         android:background="@drawable/btn_bg_green_crciry"
         android:text="@string/backup_save_copy"
         android:textColor="#ffffffff"
+        android:textAllCaps="false"
         android:textSize="15sp" />
 </LinearLayout>
