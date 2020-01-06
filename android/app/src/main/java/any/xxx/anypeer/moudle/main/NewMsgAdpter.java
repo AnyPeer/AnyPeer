@@ -14,7 +14,6 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.List;
 
 import any.xxx.anypeer.R;
@@ -23,6 +22,7 @@ import any.xxx.anypeer.chatbean.ChatConversation;
 import any.xxx.anypeer.chatbean.ChatMessage;
 import any.xxx.anypeer.db.FriendManager;
 import any.xxx.anypeer.util.DateUtils;
+import any.xxx.anypeer.util.NetUtils;
 import any.xxx.anypeer.util.ViewHolder;
 import jp.wasabeef.glide.transformations.GrayscaleTransformation;
 
@@ -32,15 +32,10 @@ public class NewMsgAdpter extends BaseAdapter {
     public static final String TAG = "NewMsgAdpter";
     private Context mContext;
     private List<ChatConversation> mConversationList;
-    private Hashtable<String, String> mChatRecord = new Hashtable<String, String>();
 
     NewMsgAdpter(Context ctx, List<ChatConversation> objects) {
         mContext = ctx;
         mConversationList = objects;
-    }
-
-    public Hashtable<String, String> getChatRecord() {
-        return mChatRecord;
     }
 
     @Override
@@ -76,56 +71,67 @@ public class NewMsgAdpter extends BaseAdapter {
         TextView txt_time = ViewHolder.get(convertView, R.id.txt_time);
         TextView unreadLabel = ViewHolder.get(convertView, R.id.unread_msg_number);
 
-        User user = FriendManager.getInstance().getUserById(conversation.getmUserId());
+        if (!conversation.isGroup()) {
+            User user = FriendManager.getInstance().getUserById(conversation.getmUserId());
 
-        txt_name.setText(user.getUserName());
+            txt_name.setText(user.getUserName());
 
-        if (user.isOnline()) {
-            txt_state.setText(R.string.friend_online);
-            txt_state.setTextColor(ContextCompat.getColor(mContext, R.color.colorPrimary));
+            if (user.isOnline()) {
+                txt_state.setText(R.string.friend_online);
+                txt_state.setTextColor(ContextCompat.getColor(mContext, R.color.colorPrimary));
 
-            if (!TextUtils.isEmpty(user.getGender())) {
-                String gender = user.getGender();
+                if (!TextUtils.isEmpty(user.getGender())) {
+                    String gender = user.getGender();
 
-                switch (gender) {
-                    case "0":
-                        Glide.with(mContext).load(R.drawable.icon_man_header).into(img_avar);
-                        break;
-                    case "1":
-                        Glide.with(mContext).load(R.drawable.icon_women_header).into(img_avar);
-                        break;
-                    default:
-                        Glide.with(mContext).load(R.drawable.icon_default).into(img_avar);
-                        break;
+                    switch (gender) {
+                        case "0":
+                            Glide.with(mContext).load(R.drawable.icon_man_header).into(img_avar);
+                            break;
+                        case "1":
+                            Glide.with(mContext).load(R.drawable.icon_women_header).into(img_avar);
+                            break;
+                        default:
+                            Glide.with(mContext).load(R.drawable.icon_default).into(img_avar);
+                            break;
+                    }
+                } else {
+                    Glide.with(mContext).load(R.drawable.icon_default).into(img_avar);
                 }
             } else {
-                Glide.with(mContext).load(R.drawable.icon_default).into(img_avar);
+                txt_state.setText(R.string.friend_offline);
+                txt_state.setTextColor(Color.parseColor("#C69978"));
+
+                if (!TextUtils.isEmpty(user.getGender())) {
+                    String gender = user.getGender();
+
+                    switch (gender) {
+                        case "0":
+                            Glide.with(mContext).load(R.drawable.icon_man_header).apply(bitmapTransform(new GrayscaleTransformation())).into(img_avar);
+                            break;
+                        case "1":
+                            Glide.with(mContext).load(R.drawable.icon_women_header).apply(bitmapTransform(new GrayscaleTransformation())).into(img_avar);
+                            break;
+                        default:
+                            Glide.with(mContext).load(R.drawable.icon_default).apply(bitmapTransform(new GrayscaleTransformation())).into(img_avar);
+                            break;
+                    }
+                } else {
+                    Glide.with(mContext).load(R.drawable.icon_default).apply(bitmapTransform(new GrayscaleTransformation())).into(img_avar);
+                }
             }
         } else {
-            txt_state.setText(R.string.friend_offline);
-            txt_state.setTextColor(Color.parseColor("#C69978"));
+            txt_name.setText(conversation.getGroupName());
+            Glide.with(mContext).load(R.drawable.icon_group).into(img_avar);
 
-            if (!TextUtils.isEmpty(user.getGender())) {
-                String gender = user.getGender();
-
-                switch (gender) {
-                    case "0":
-                        Glide.with(mContext).load(R.drawable.icon_man_header).apply(bitmapTransform(new GrayscaleTransformation())).into(img_avar);
-                        break;
-                    case "1":
-                        Glide.with(mContext).load(R.drawable.icon_women_header).apply(bitmapTransform(new GrayscaleTransformation())).into(img_avar);
-                        break;
-                    default:
-                        Glide.with(mContext).load(R.drawable.icon_default).apply(bitmapTransform(new GrayscaleTransformation())).into(img_avar);
-                        break;
-                }
-            } else {
-                Glide.with(mContext).load(R.drawable.icon_default).apply(bitmapTransform(new GrayscaleTransformation())).into(img_avar);
+            if (NetUtils.getInstance().groupIsOnline(conversation.getGroupName())) {
+                txt_state.setText(R.string.friend_online);
+                txt_state.setTextColor(ContextCompat.getColor(mContext, R.color.colorPrimary));
+            }
+            else {
+                txt_state.setText(R.string.friend_offline);
+                txt_state.setTextColor(Color.parseColor("#C69978"));
             }
         }
-
-
-
 
         if (conversation.getUnreadMsgCount() > 0) {
             // Show the unread message count.

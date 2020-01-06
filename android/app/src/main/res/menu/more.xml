@@ -8,4 +8,10 @@
 
     <item android:id="@+id/paymentandgathering"
         android:title="@string/menu_receiptaddress"/>
+
+    <item android:id="@+id/transferto"
+        android:title="@string/menu_transferto"/>
+
+    <item android:id="@+id/myChatAddress"
+        android:title="@string/menu_mychataddress"/>
 </menu>

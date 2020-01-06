@@ -1,30 +1,33 @@
 package any.xxx.anypeer.moudle.main;
 
 import android.Manifest;
-import android.app.NotificationManager;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
+import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.provider.Settings;
+import android.os.Vibrator;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -37,6 +40,9 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.allenliu.versionchecklib.v2.AllenVersionChecker;
+import com.allenliu.versionchecklib.v2.builder.DownloadBuilder;
+import com.allenliu.versionchecklib.v2.builder.UIData;
 import com.google.gson.Gson;
 import com.kaopiz.kprogresshud.KProgressHUD;
 
@@ -44,14 +50,19 @@ import org.elastos.carrier.ConnectionStatus;
 import org.elastos.carrier.FriendInfo;
 import org.elastos.carrier.UserInfo;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import any.xxx.anypeer.BuildConfig;
+import any.xxx.anypeer.Config;
 import any.xxx.anypeer.R;
 import any.xxx.anypeer.app.BaseActivity;
 import any.xxx.anypeer.app.ForegroundCallbacks;
+import any.xxx.anypeer.bean.UpdateVersionBean;
 import any.xxx.anypeer.bean.User;
+import any.xxx.anypeer.chatbean.ChatConversation;
 import any.xxx.anypeer.chatbean.ChatMessage;
 import any.xxx.anypeer.db.ChatDBManager;
 import any.xxx.anypeer.db.FriendManager;
@@ -62,15 +73,20 @@ import any.xxx.anypeer.moudle.chat.MessageService;
 import any.xxx.anypeer.moudle.chat.MessageService.IMessageCallback;
 import any.xxx.anypeer.moudle.chat.TransferAccountsActivity;
 import any.xxx.anypeer.moudle.friend.FriendDetailActivity;
+import any.xxx.anypeer.moudle.init.InitActivity;
 import any.xxx.anypeer.util.AnyWallet;
 import any.xxx.anypeer.util.EventBus;
 import any.xxx.anypeer.util.FileUtils;
 import any.xxx.anypeer.util.NetUtils;
+import any.xxx.anypeer.util.NotificationUtils;
 import any.xxx.anypeer.util.PrefereneceUtil;
 import any.xxx.anypeer.util.Utils;
 import any.xxx.anypeer.zxing.CaptureActivity;
-
-import static any.xxx.anypeer.moudle.chat.ChatActivity.IS_CHAT_START;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends BaseActivity implements IMessageCallback, OnMenuItemClickListener, EventBus.Callback {
     private static final String TAG = "MainActivity";
@@ -84,6 +100,7 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
     private List<Fragment> mFragments;
     private MessageFragment mMessageFragment;
     private FriendFragment mFriendFragment;
+    private RankFragment rankFragment;
     private View mLayout;
     private TextView mTxtTitle;
     private MessageService.NetHandler mHandler = null;
@@ -92,9 +109,12 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
     private ServiceConnection mServiceConnection;
     private ChatManager mChatManager;
     private KProgressHUD mKProgressHUD;
-    private boolean mIsReady = false;
+    private static boolean mIsReady = false;
+    private static boolean mIsJoined = false;
     private AnyWallet mAnyWallet;
     private String mName;
+    private boolean isTipUpdate, isFocre;
+    private View ll_loading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +123,28 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
 
         init();
         findViewById();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        try {
+            //For Re-generate the wallet.
+            if (mIsReady && InitActivity.LOGIN_CHANAGED) {
+                updateSelf();
+
+                mKProgressHUD.dismiss();
+                if (mIsJoined) {
+                    ll_loading.setVisibility(View.GONE);
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        checkUpdate();
     }
 
     private void init() {
@@ -116,15 +158,10 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                 .setCancellable(true)
                 .setAnimationSpeed(2)
                 .setDimAmount(0.5f)
+                .setLabel(getString(R.string.wait_carrier_ready))
                 .show();
 
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                sNetUtils = NetUtils.getInstance(MainActivity.this, mHandler);
-            }
-        });
-        thread.start();
+	sNetUtils = NetUtils.getInstance(MainActivity.this, mHandler);
 
         mChatManager = ChatManager.getInstance(this);
 
@@ -142,6 +179,21 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
         if (user != null) {
             mName = user.getUserName();
         }
+
+        //init sound
+        initSoundPool();
+
+        ForegroundCallbacks.get(getApplication()).addListener(new ForegroundCallbacks.Listener() {
+            @Override
+            public void onBecameForeground() {
+                checkUpdate();
+            }
+
+            @Override
+            public void onBecameBackground() {
+
+            }
+        });
     }
 
     private boolean checkAddFriend() {
@@ -157,15 +209,15 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
 
     @Override
     public void processMessage(Message msg) {
-        String testString = "ERROR";
         int what = msg.what;
         switch (what) {
             case NetUtils.ANYSTATE.READY: {
+                mKProgressHUD.dismiss();
                 mIsReady = true;
                 //the local network is ready.
+                //For update the name and ela address.
                 updateSelf();
-                testString = "the Network is READY";
-                mKProgressHUD.dismiss();
+
                 checkNotification();
 
                 break;
@@ -182,9 +234,6 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                         mMessageFragment.onReflash();
 
                         //Update the contact list.
-//                        mFriendFragment.addNewUser(info);
-                        testString = "A friend is added.";
-
                         User user = new User(name, id);
                         FriendManager.getInstance().addFriend(user);
 
@@ -230,12 +279,14 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                     sNetUtils.accept(userId);
                 }
 
-                testString = "A friend request.";
+                break;
+            }
+            case NetUtils.ANYSTATE.MSG_FORBIDDEN: {
+                sNetUtils.forbidDefault();
                 break;
             }
             case NetUtils.ANYSTATE.FRIENDMESSAGE: {
                 //TODO a message is coming.
-
                 Bundle data = msg.getData();
                 if (data != null) {
                     String userId = data.getString(NetUtils.ANYSTATE.FROM);
@@ -247,37 +298,84 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                                 User user = FriendManager.getInstance().getUserById(userId);
                                 // TODO: get 3 char
                                 int id = Integer.valueOf(Utils.stringToAscii(userId.substring(0, 3)));
-                                int unread = ChatDBManager.getInstance().getChatConversaionByUserId(userId).getUnreadMsgCount() + 1;
+                                int unread = ChatDBManager.getInstance().getChatConversationByUserId(userId).getUnreadMsgCount() + 1;
                                 String unreadString = getString(R.string.unread_number, String.valueOf(unread));
                                 showMessageNotification(this, id, user.getUserName() + " [" + unreadString + "]", message, user);
                             }
                         }
                     }
 
-                    if (IS_CHAT_START) {
+                    if (ChatActivity.isActiveChat(userId)) {
                         return;
                     }
 
-                    Log.d(TAG, "FRIENDMESSAGE:=" + message);
+                    //a new message is coming.
+                    vibrateSound();
+
                     if (mFriendFragment.isRobot(userId)) {
                         //TODO
-                        showTestInfo("Robot say: " + message);
+//                        showTestInfo("Robot say: " + message);
                         mFriendFragment.applyResult(message);
                     } else {
                         ChatMessage chatMessage = new ChatMessage();
                         chatMessage.setMsgId(UUID.randomUUID().toString());
                         chatMessage.setDirect(ChatMessage.Direct.RECEIVE.ordinal());
                         chatMessage.setUnread(true);
-                        chatMessage.setType(ChatMessage.Type.TXT.ordinal());
+                        chatMessage.setType(msg.arg1);
                         chatMessage.setMessage(message);
 
-//                        mChatManager.addMessage(MainActivity.this, userId, emMessage);
                         ChatDBManager.getInstance().addMessage(userId, chatMessage);
                         mMessageFragment.onReflash();
                     }
                 }
 
-                testString = "A new message is coming, need to process";
+                break;
+            }
+            case NetUtils.ANYSTATE.GROUP_MESSAGE: {
+                try {
+                    Bundle data = msg.getData();
+                    String userId = data.getString(NetUtils.ANYSTATE.GROUP_TITLE);
+                    String message = data.getString(NetUtils.ANYSTATE.DATA);
+                    String from = data.getString(NetUtils.ANYSTATE.FROM);
+
+                    if (ForegroundCallbacks.get().isBackground()) {
+                        if (ChatManager.getInstance(this).getIsMessageShowNotification(this)) {
+                            if (NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+                                User user = new User(userId, userId);
+                                // TODO: get 3 char
+                                int id = Integer.valueOf(Utils.stringToAscii(userId.substring(0, 3)));
+                                int unread = ChatDBManager.getInstance().getChatConversationByUserId(userId).getUnreadMsgCount() + 1;
+                                String unreadString = getString(R.string.unread_number, String.valueOf(unread));
+                                showMessageNotification(this, id, user.getUserName() + " [" + unreadString + "]", message, user);
+                            }
+                        }
+                    }
+
+                    if (ChatActivity.isActiveChat(userId)) {
+                        return;
+                    }
+
+                    vibrateSound();
+
+                    ChatMessage chatMessage = new ChatMessage();
+                    String msgId = UUID.randomUUID().toString();
+                    chatMessage.setMsgId(msgId);
+                    chatMessage.setDirect(ChatMessage.Direct.RECEIVE.ordinal());
+                    chatMessage.setUnread(true);
+                    chatMessage.setType(ChatMessage.Type.TXT.ordinal());
+                    chatMessage.setMessage(message);
+                    chatMessage.setFromId(from);
+
+                    ChatDBManager.getInstance().addMessage(userId, chatMessage);
+
+                    //Store the user's name.
+                    String fromName = NetUtils.getInstance().peerName(userId, from);
+                    ChatDBManager.getInstance().setGroupMessageName(msgId, fromName);
+
+                    mMessageFragment.onReflash();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 break;
             }
@@ -288,7 +386,6 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                     String userId = data.getString(NetUtils.ANYSTATE.FROM);
                     byte[] fileData = data.getByteArray(NetUtils.ANYSTATE.FILEDATA);
                     ChatMessage.Type msgType = ChatMessage.Type.getMsgType(msg.arg1);
-                    Log.d(TAG, "processMessage========msg=" + msg.what + ", userId=" + userId + ", msgType=" + msgType);
 
                     String filePath = FileUtils.bytesToFile(fileData);
                     if (filePath == null || filePath.isEmpty()) {
@@ -296,7 +393,6 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                     }
 
                     String messageString = "";
-
                     switch (msgType) {
                         case MONEY:
                             messageString = getString(R.string.newmsg_recvtransfer);
@@ -313,9 +409,7 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                         case VIDEO:
                             messageString = getString(R.string.newmsg_video);
                             break;
-
                     }
-
 
                     if (ForegroundCallbacks.get().isBackground()) {
                         if (ChatManager.getInstance(this).getIsMessageShowNotification(this)) {
@@ -323,14 +417,14 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                                 User user = FriendManager.getInstance().getUserById(userId);
                                 // TODO: get 3 char
                                 int id = Integer.valueOf(Utils.stringToAscii(userId.substring(0, 3)));
-                                int unread = ChatDBManager.getInstance().getChatConversaionByUserId(userId).getUnreadMsgCount() + 1;
+                                int unread = ChatDBManager.getInstance().getChatConversationByUserId(userId).getUnreadMsgCount() + 1;
                                 String unreadString = getString(R.string.unread_number, String.valueOf(unread));
                                 showMessageNotification(this, id, user.getUserName() + " [" + unreadString + "]", messageString, user);
                             }
                         }
                     }
 
-                    if (IS_CHAT_START) {
+                    if (ChatActivity.isActiveChat(userId)) {
                         return;
                     }
 
@@ -346,7 +440,7 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                         message.setFilePath(filePath);
                     } else if (msgType == ChatMessage.Type.VIDEO) {
                         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                        mmr.setDataSource(filePath);//设置数据源为该文件对象指定的绝对路径
+                        mmr.setDataSource(filePath);
                         Bitmap bitmap = mmr.getFrameAtTime();
 
                         String imagePath = getFilesDir() + "/";
@@ -357,7 +451,6 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                         message.setLocalThumb(imageFilePath);
                         message.setFilePath(filePath);
                     }
-//                    mChatManager.addMessage(MainActivity.this, userId, message);
                     ChatDBManager.getInstance().addMessage(userId, message);
 
                     mMessageFragment.onReflash();
@@ -365,20 +458,55 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
             }
             case NetUtils.ANYSTATE.CONNECTION: {
                 //TODO the local network is connected.
-                testString = "CONNECTION";
+                break;
+            }
+            case NetUtils.ANYSTATE.GROUP_PEER_NAME: {
+                String groupTitle = (String) msg.obj;
+                updateGroupTitle(groupTitle);
+
+                break;
+            }
+            case NetUtils.ANYSTATE.GROUP_PEER_CHANGED: {
+                String groupTitle = (String) msg.obj;
+                updateGroupTitle(groupTitle);
+                break;
+            }
+            case NetUtils.ANYSTATE.GROUP_LEAVE: {
+                String groupTitle = (String) msg.obj;
+                try {
+                    sNetUtils.inviteDefault(groupTitle);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
+            case NetUtils.ANYSTATE.GROUP_DEFAULT_ONLINE: {
+                try {
+                    String groupTitle = (String) msg.obj;
+                    updateGroupTitle(groupTitle);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 break;
             }
             case NetUtils.ANYSTATE.FRIENDCONNECTION: {
-                //TODO the friend is online.
-                if (msg.arg1 == ConnectionStatus.Connected.value()) {
-                    testString = "A friend is online";
-                } else {
-                    testString = "A friend is offline";
-                }
-
+                //The friend is online.
                 String userId = (String) msg.obj;
                 if (userId != null && mFriendFragment.isRobot(userId)) {
-                    mFriendFragment.updateRobot(msg.arg1 == ConnectionStatus.Connected.value());
+                    boolean connected = msg.arg1 == ConnectionStatus.Connected.value();
+                    mFriendFragment.updateRobot(connected);
+
+                    if (connected) {
+                        //Notice the bot to invite me.
+//	                    if (Utils.isCN(this)) {
+		                    sNetUtils.inviteDefault(NetUtils.DEFAULT_GROUP_TYPE.CN);
+//	                    }
+//	                    else {
+		                    sNetUtils.inviteDefault(NetUtils.DEFAULT_GROUP_TYPE.EN);
+//	                    }
+                    }
                 } else {
                     mFriendFragment.initContactList();
                     mMessageFragment.onReflash();
@@ -387,7 +515,6 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                 break;
             }
             case NetUtils.ANYSTATE.SELFINFOCHANGED: {
-                testString = "My information is changed.";
                 break;
             }
             case NetUtils.ANYSTATE.FRIENDINFOCHANGED: {
@@ -395,8 +522,6 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                 Bundle data = msg.getData();
                 if (info != null) {
                     String userId = data.getString(NetUtils.ANYSTATE.USERID);
-                    Log.d(TAG, String.format("FRIENDINFOCHANGED  label=[%s], name=[%s], userId=[%s], des=[%s]",
-                            info.getLabel(), info.getName(), userId, info.getDescription()));
                     mChatManager.updateFriend(info.getName(), userId, info.getDescription()
                             , info.getGender(), info.getEmail());
                     FriendManager.getInstance().updateUserInfo(userId, info.getName(), info.getGender(),
@@ -405,7 +530,6 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
 
                     //Update the contact list.
                     mFriendFragment.initContactList();
-                    testString = "A friend's information is changed.";
                 }
 
                 break;
@@ -416,7 +540,17 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                 if (id != null) {
                     //Update the contact list.
                     mFriendFragment.removeUser(id);
-                    testString = "A friend is removed.";
+                    int size = mReAddFriendAddress.size();
+
+                    for (int i = 0; i < size; i++) {
+                        String address = mReAddFriendAddress.get(i);
+                        String userId = NetUtils.getUserIdByAddress(address);
+                        if (id.equals(userId)) {
+                            sNetUtils.addFriend(address, mName);
+                            mReAddFriendAddress.remove(i);
+                            break;
+                        }
+                    }
                 }
                 break;
             }
@@ -426,19 +560,38 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
             case NetUtils.ANYSTATE.FILE_TRANSFER_FEEDBACK: {
                 Bundle data = msg.getData();
                 if (data != null) {
-                    String userId = data.getString(NetUtils.ANYSTATE.FROM);
                     String msgId = data.getString(NetUtils.ANYSTATE.MSG);
-//                    mChatManager.setMessageStatus(MainActivity.this, userId, msgId, EMMessage.Status.SUCCESS);
-
                     ChatDBManager.getInstance().setMessageStatus(msgId, ChatMessage.Status.SUCCESS);
                 }
             }
-            default: {
-                testString = "";
-            }
         }
+    }
 
-        showTestInfo(testString);
+	private void vibrateSound() {
+		Vibrator vib = (Vibrator) getSystemService(Service.VIBRATOR_SERVICE);
+		if (vib != null) {
+			vib.vibrate(100);
+		}
+
+		//sound
+		playSounds(VOICE_ID_MESSAGE);
+	}
+
+    private void updateGroupTitle(String groupTitle) {
+        if (groupTitle != null && !groupTitle.isEmpty()) {
+            ll_loading.setVisibility(View.GONE);
+            mIsJoined = true;
+
+            ChatConversation chatConversation = ChatDBManager.getInstance().getChatConversationByUserId(groupTitle);
+            if (chatConversation == null) {
+                chatConversation = new ChatConversation();
+                chatConversation.setGroup(true);
+                chatConversation.setGroupName(groupTitle);
+                chatConversation.setmUserId(groupTitle);
+                ChatDBManager.getInstance().addConversation(chatConversation);
+            }
+            mMessageFragment.onReflash();
+        }
     }
 
     private void showTestInfo(String info) {
@@ -448,22 +601,33 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
     }
 
     private void updateSelf() {
-        User user = new Gson().fromJson(PrefereneceUtil.getString(this, User.USER), User.class);
-        UserInfo self = sNetUtils.getSelfInfo();
-        self.setName(user.getUserName());
-        self.setEmail(user.getEmail());
-        self.setGender(user.getGender());
+        try {
+            User user = new Gson().fromJson(PrefereneceUtil.getString(this, User.USER), User.class);
+            UserInfo self = sNetUtils.getSelfInfo();
+            self.setName(user.getUserName());
+            self.setEmail(user.getEmail());
+            self.setGender(user.getGender());
+            self.setRegion(Long.toString(System.currentTimeMillis()));
 
-        if (mAnyWallet != null) {
-            self.setDescription(mAnyWallet.getWalletAddress());
-        } else {
-            self.setDescription("NONE");
+            if (mAnyWallet != null) {
+                if (!mAnyWallet.isValidWallet()) {
+                    Utils.showShortToast(this, getString(R.string.wallet_has_exception));
+                }
+                else {
+                    self.setDescription(mAnyWallet.getWalletAddress());
+                }
+            } else {
+                self.setDescription("NONE");
+            }
+
+            //Check robot
+            mFriendFragment.initRobotUserId(user.getUserName());
+
+            sNetUtils.setSelfInfo(self);
         }
-
-        //Check robot
-        mFriendFragment.initRobotUserId(user.getUserName());
-
-        sNetUtils.setSelfInfo(self);
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -474,27 +638,38 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                 break;
             }
             case R.id.paymentandgathering: {
-                if (mIsReady) {
-                    try {
-                        String receipAddress = mAnyWallet.getWalletAddress();
-                        Intent intent = new Intent(this, BarCodeActivity.class);
-                        intent.putExtra(Utils.QRCODETYPE, Utils.QrCodeType.Wallet_Address.ordinal());
-                        intent.putExtra(Utils.ADDRESS, receipAddress);
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        Utils.showShortToast(MainActivity.this, "Start the receipt-address Activity failed.");
-                    }
-                } else {
-                    Utils.showShortToast(MainActivity.this, "The Network is not ready.");
+                try {
+                    String receipAddress = mAnyWallet.getWalletAddress();
+                    Intent intent = new Intent(this, BarCodeActivity.class);
+                    intent.putExtra(Utils.QRCODETYPE, Utils.QrCodeType.Wallet_Address.ordinal());
+                    intent.putExtra(Utils.ADDRESS, receipAddress);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Utils.showShortToast(MainActivity.this, "Start the receipt-address Activity failed.");
                 }
 
                 break;
             }
-
-            case R.id.friend:
+            case R.id.friend: {
                 Intent intent = new Intent(this, AddFriendActivity.class);
                 startActivityForResult(intent, REQ_QR_CODE);
                 break;
+            }
+            case R.id.myChatAddress: {
+                Intent intent = new Intent(this, BarCodeActivity.class);
+                intent.putExtra(Utils.QRCODETYPE, Utils.QrCodeType.Carrier_Address.ordinal());
+                intent.putExtra(Utils.ADDRESS, Utils.getQrcodeString(this));
+                startActivity(intent);
+                break;
+            }
+	        case R.id.transferto: {
+		        Intent intent = new Intent(MainActivity.this, TransferAccountsActivity.class);
+		        intent.putExtra(TransferAccountsActivity.NAME, "");
+		        intent.putExtra(TransferAccountsActivity.GENDER, "");
+		        intent.putExtra(TransferAccountsActivity.ADDRESS, "");
+		        startActivity(intent);
+		        break;
+	        }
 
             default:
                 break;
@@ -503,8 +678,10 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
     }
 
     @Override
-    public void callback() {
-        new Handler().postDelayed(() -> onTabClicked(R.id.re_anypeer), 300);
+    public void callback(boolean isGoMain) {
+        if (isGoMain) {
+            new Handler().postDelayed(() -> onTabClicked(R.id.re_anypeer), 300);
+        }
 
         mMessageFragment.onReflash();
     }
@@ -536,6 +713,9 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
 
             sNetUtils.kill();
             mAnyWallet.onDestroy();
+            if (m_soundPool != null) {
+	        m_soundPool.release();
+            }
         } catch (Exception e) {
             //
         }
@@ -553,6 +733,14 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
 
     private void findViewById() {
         mLayout = findViewById(R.id.fragment_container);
+        ll_loading = findViewById(R.id.ll_loading);
+        ImageView iv_loading = findViewById(R.id.iv_loading);
+
+        ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(iv_loading, "rotation", 0f, 360f);
+        objectAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        objectAnimator.setRepeatMode(ValueAnimator.RESTART);
+        objectAnimator.start();
+
         mTxtTitle = findViewById(R.id.txt_title);
         ImageView moreTools = findViewById(R.id.img_right);
         moreTools.setVisibility(View.VISIBLE);
@@ -574,51 +762,43 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
         mImagebuttons = new ArrayList<>();
         mImagebuttons.add(findViewById(R.id.ib_anypeer));
         mImagebuttons.add(findViewById(R.id.ib_contact_list));
+        mImagebuttons.add(findViewById(R.id.ib_rank));
         mImagebuttons.add(findViewById(R.id.ib_profile));
 
         mImagebuttons.get(0).setSelected(true);
         mTextviews = new ArrayList<>();
         mTextviews.add(findViewById(R.id.tv_anypeer));
         mTextviews.add(findViewById(R.id.tv_contact_list));
+        mTextviews.add(findViewById(R.id.tv_rank));
         mTextviews.add(findViewById(R.id.tv_profile));
         mTextviews.get(0).setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
 
         mMessageFragment = new MessageFragment();
         mFriendFragment = new FriendFragment();
+        rankFragment = new RankFragment();
         MeFragment meFragment = new MeFragment();
 
         mFragments = new ArrayList<>();
         mFragments.add(mMessageFragment);
         mFragments.add(mFriendFragment);
+        mFragments.add(rankFragment);
         mFragments.add(meFragment);
 
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment_container, mMessageFragment)
                 .add(R.id.fragment_container, mFriendFragment)
+                .add(R.id.fragment_container, rankFragment)
                 .add(R.id.fragment_container, meFragment)
-                .hide(mFriendFragment).hide(meFragment)
+                .hide(mFriendFragment).hide(meFragment).hide(rankFragment)
                 .show(mMessageFragment).commit();
 
-        findViewById(R.id.re_anypeer).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onTabClicked(view.getId());
-            }
-        });
+        findViewById(R.id.re_anypeer).setOnClickListener(view -> onTabClicked(view.getId()));
 
-        findViewById(R.id.re_contact_list).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onTabClicked(view.getId());
-            }
-        });
+        findViewById(R.id.re_contact_list).setOnClickListener(view -> onTabClicked(view.getId()));
 
-        findViewById(R.id.re_profile).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onTabClicked(view.getId());
-            }
-        });
+        findViewById(R.id.re_rank_list).setOnClickListener(view -> onTabClicked(view.getId()));
+
+        findViewById(R.id.re_profile).setOnClickListener(view -> onTabClicked(view.getId()));
     }
 
     public void onTabClicked(int id) {
@@ -632,8 +812,12 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                     mIndex = 1;
                     mTxtTitle.setText(getString(R.string.contacts));
                     break;
-                case R.id.re_profile:
+                case R.id.re_rank_list:
                     mIndex = 2;
+                    mTxtTitle.setText(getString(R.string.node_title));
+                    break;
+                case R.id.re_profile:
+                    mIndex = 3;
                     mTxtTitle.setText(getString(R.string.mine));
                     break;
             }
@@ -682,7 +866,13 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                 String scanResult = bundle.getString("result");
                 if (scanResult != null) {
                     String[] args = scanResult.split("\\s+");
-                    final String address = args[0];
+                    String complex = args[0];
+                    if (args[0].contains("elastos:")) {
+                        int pos = args[0].indexOf(":");
+                        complex = args[0].substring(pos + 1);
+                    }
+
+                    final String address = complex;
                     if (mAnyWallet.isAddressValid(address)) {
                         Intent intent = new Intent(MainActivity.this, TransferAccountsActivity.class);
                         intent.putExtra(TransferAccountsActivity.NAME, "");
@@ -697,12 +887,19 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                         name = args[1];
                     }
 
+                    final String userId = NetUtils.getUserIdByAddress(address);
+                    final boolean isFriend = sNetUtils.isFriend(userId);
                     if (NetUtils.isValidAddress(address)) {
                         MaterialDialog.Builder builder = new MaterialDialog.Builder(MainActivity.this);
                         builder.onNegative((dialog, which) -> dialog.dismiss());
 
-                        builder.title(R.string.friend_add_text1);
-                        builder.content(getString(R.string.friend_add_ask_1) + name + getString(R.string.friend_add_ask_2));
+                        if (isFriend) {
+                            builder.title(R.string.friend_readd_text1);
+                            builder.content(getString(R.string.friend_readd_ask_1) + name + getString(R.string.friend_add_ask_2));
+                        } else {
+                            builder.title(R.string.friend_add_text1);
+                            builder.content(getString(R.string.friend_add_ask_1) + name + getString(R.string.friend_add_ask_2));
+                        }
 
                         builder.negativeText(R.string.friend_add_no);
                         builder.positiveText(R.string.friend_add_yes);
@@ -711,8 +908,14 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                             User user = new Gson().fromJson(PrefereneceUtil.getString(MainActivity.this
                                     , User.USER), User.class);
 
-                            //TODO: maybe make the user input some thing.
-                            sNetUtils.addFriend(address, user.getUserName());
+                            //if we are friend, bug i don't have the chat history, add him(her) again.
+                            if (isFriend) {
+                                mReAddFriendAddress.add(address);
+                                sNetUtils.removeFriend(userId);
+                            } else {
+                                //TODO: maybe make the user input some thing.
+                                sNetUtils.addFriend(address, user.getUserName());
+                            }
 
                             dialog.dismiss();
                         }).show();
@@ -762,46 +965,32 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
     }
 
     private void showNotification(Context context, int id, String title, String text, User user) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-        builder.setSmallIcon(R.mipmap.app_icon);
-        builder.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.app_icon));
-        builder.setContentTitle(title);
-        builder.setContentText(text);
-        builder.setAutoCancel(true);
-        builder.setOnlyAlertOnce(true);
-
-
         // User define
         Intent resultIntent = new Intent(context, FriendDetailActivity.class);
         resultIntent.putExtra(FriendDetailActivity.TYPE, FriendDetailActivity.TYPE_ADD_FRIEND);
         resultIntent.putExtra(Utils.USERID, user.getUserId());
         resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(contentIntent);
-
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(id, builder.build());
+        NotificationUtils notificationUtils = new NotificationUtils(this);
+        notificationUtils
+                .setOngoing(true)
+                .setContentIntent(contentIntent)
+                .sendNotification(id, title, text, R.mipmap.app_icon);
     }
 
     private void showMessageNotification(Context context, int id, String title, String text, User user) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-        builder.setSmallIcon(R.mipmap.app_icon);
-        builder.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.app_icon));
-        builder.setContentTitle(title);
-        builder.setContentText(text);
-        builder.setAutoCancel(true);
-        builder.setOnlyAlertOnce(true);
-
         // User define
         Intent resultIntent = new Intent(context, ChatActivity.class);
         resultIntent.putExtra(Utils.NAME, user.getUserName());
         resultIntent.putExtra(Utils.USERID, user.getUserId());
         resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(contentIntent);
 
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(id, builder.build());
+        NotificationUtils notificationUtils = new NotificationUtils(this);
+        notificationUtils
+                .setOngoing(true)
+                .setContentIntent(contentIntent)
+                .sendNotification(id, title, text, R.mipmap.app_icon);
     }
 
     private void checkNotification() {
@@ -811,30 +1000,171 @@ public class MainActivity extends BaseActivity implements IMessageCallback, OnMe
                     .positiveText(R.string.btn_sure)
                     .negativeText(R.string.btn_cancel);
             builder.onAny((dialog, which) -> {
-                if (which == DialogAction.NEUTRAL) {
-                } else if (which == DialogAction.POSITIVE) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                if (which == DialogAction.POSITIVE) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                         Intent intent = new Intent();
                         intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
                         intent.putExtra("app_package", MainActivity.this.getPackageName());
                         intent.putExtra("app_uid", MainActivity.this.getApplicationInfo().uid);
                         startActivity(intent);
-                    } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-                        Intent intent = new Intent();
-                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        intent.addCategory(Intent.CATEGORY_DEFAULT);
-                        intent.setData(Uri.parse("package:" + MainActivity.this.getPackageName()));
-                        startActivity(intent);
-                    } else {
+                    }
+                    else {
                         Intent localIntent = new Intent();
                         localIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         localIntent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
                         localIntent.setData(Uri.fromParts("package", MainActivity.this.getPackageName(), null));
                         startActivity(localIntent);
                     }
-                } else if (which == DialogAction.NEGATIVE) {
                 }
             }).show();
         }
     }
+
+    private void checkUpdate() {
+        OkHttpClient okHttpClient = new OkHttpClient();
+        Request request = new Request.Builder()
+                // TODO : test config
+                .url("https://anyxxx.github.io/AnyPeer/")
+                .get()
+                .build();
+
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                try {
+                    if (response.isSuccessful()) {
+                        String html = response.body().string();
+                        String[] strings = html.split("Update");
+                        String versionJson = null;
+                        for (int i = 0; i < strings.length; i++) {
+                            if (i % 2 != 0) {
+                                try {
+                                    versionJson = strings[i].replaceAll("\\<.*?>", "").trim();
+                                    break;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                        if (!TextUtils.isEmpty(versionJson)) {
+                            UpdateVersionBean updateVersionBean = new Gson().fromJson(versionJson, UpdateVersionBean.class);
+                            if (updateVersionBean == null) {
+                                return;
+                            }
+
+                            if (updateVersionBean.getVersion() > BuildConfig.VERSION_CODE) {
+                                if (isTipUpdate && !updateVersionBean.isIs_force() || isFocre) {
+                                    return;
+                                }
+
+                                isTipUpdate = true;
+                                Log.d(TAG, getString(R.string.channal));
+                                if (getString(R.string.channal).equals(Config.CHANNAL_CN)) {
+                                    UIData uiData = UIData.create();
+                                    uiData.setTitle(getString(R.string.update_title));
+                                    uiData.setDownloadUrl(updateVersionBean.getUrl());
+                                    uiData.setContent(updateVersionBean.getDescription());
+
+                                    DownloadBuilder builder = AllenVersionChecker
+                                            .getInstance()
+                                            .downloadOnly(uiData);
+
+                                    builder.setShowNotification(false);
+
+                                    if (updateVersionBean.isIs_force()) {
+                                        isFocre = true;
+                                        builder.setForceRedownload(true);
+                                        builder.setForceUpdateListener(() -> {
+                                            finish();
+                                        });
+                                    }
+
+                                    builder.executeMission(MainActivity.this);
+                                } else if (getString(R.string.channal).equals(Config.CHANNAL_GP)) {
+                                    MaterialDialog.Builder builder = new MaterialDialog.Builder(MainActivity.this)
+                                            .title(R.string.update_title)
+                                            .content(updateVersionBean.getDescription())
+                                            .positiveText(R.string.btn_sure)
+                                            .onPositive((dialog, which) -> {
+                                                if (!Utils.checkAppInstalled(MainActivity.this, "com.android.vending")) {
+                                                    Toast.makeText(MainActivity.this, getString(R.string.not_install_gp), Toast.LENGTH_LONG).show();
+                                                    if (updateVersionBean.isIs_force()) {
+                                                        finish();
+                                                    } else {
+                                                        return;
+                                                    }
+                                                }
+
+                                                try {
+                                                    Uri uri = Uri.parse("market://details?id=" + BuildConfig.APPLICATION_ID);
+                                                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                                                    intent.setPackage("com.android.vending");
+                                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                    startActivity(intent);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+
+                                                if (updateVersionBean.isIs_force()) {
+                                                    isFocre = true;
+                                                    new Handler().postDelayed(() -> {
+                                                        finish();
+                                                    }, 1000);
+                                                }
+                                            });
+
+                                    if (updateVersionBean.isIs_force()) {
+                                        builder.canceledOnTouchOutside(false);
+                                    } else {
+                                        builder.negativeText(R.string.btn_cancel);
+                                    }
+
+                                    runOnUiThread(() -> builder.show());
+
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+	private int VOICE_ID_MESSAGE = 0;
+	private SoundPool m_soundPool = null;
+	private void initSoundPool() {
+		try {
+			m_soundPool = new SoundPool.Builder().setMaxStreams(2).build();
+			VOICE_ID_MESSAGE = m_soundPool.load(this, R.raw.message, 1);
+                        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@SuppressWarnings("static-access")
+	private void playSounds(int soundID){
+    	try {
+    	    if (ChatManager.getInstance(this).getIsMessageVoice(this)) {
+                AudioManager am = (AudioManager)this.getSystemService(this.AUDIO_SERVICE);
+                if (am != null) {
+                    float audioMaxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+                    float audioCurrentVolume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+                    float volumeRatio = audioCurrentVolume / audioMaxVolume;
+                    m_soundPool.play(soundID, volumeRatio, volumeRatio, 0, 0, 1);
+                }
+            }
+	    }
+	    catch (Exception e) {
+    		e.printStackTrace();
+	    }
+	}
 }

@@ -37,11 +37,27 @@ public class InitActivity extends BaseActivity implements TextWatcher, View.OnTo
 
     private KeyboardPatch keyboardPatch;
     private static final int MIN_PASSWORDLEN = 6;
+    public static boolean LOGIN_CHANAGED = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_init);
+
+        etName = findViewById(R.id.et_name);
+        User user = null;
+        try {
+            user = new Gson().fromJson(PrefereneceUtil.getString(this, User.USER), User.class);
+            if (user != null) {
+                String name = user.getUserName();
+                if (name != null && !name.isEmpty()) {
+                    etName.setText(name);
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 
         findViewById(R.id.img_back).setVisibility(View.VISIBLE);
         findViewById(R.id.img_back).setOnClickListener(new View.OnClickListener() {
@@ -55,7 +71,6 @@ public class InitActivity extends BaseActivity implements TextWatcher, View.OnTo
         keyboardPatch = new KeyboardPatch(this, findViewById(R.id.content));
         keyboardPatch.enable();
 
-        etName = findViewById(R.id.et_name);
         rg = findViewById(R.id.rg);
         email = findViewById(R.id.email);
         password = findViewById(R.id.password);
@@ -70,12 +85,6 @@ public class InitActivity extends BaseActivity implements TextWatcher, View.OnTo
         btComplite = findViewById(R.id.bt_complite);
 
         etName.addTextChangedListener(this);
-
-//        password.setOnTouchListener(this);
-//        passwordAgain.setOnTouchListener(this);
-//
-//        password.setOnFocusChangeListener(this);
-//        passwordAgain.setOnFocusChangeListener(this);
 
         rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -140,6 +149,7 @@ public class InitActivity extends BaseActivity implements TextWatcher, View.OnTo
                     e.printStackTrace();
                 }
 
+                LOGIN_CHANAGED = true;
                 startActivity(new Intent(InitActivity.this, MainActivity.class));
                 finish();
             }

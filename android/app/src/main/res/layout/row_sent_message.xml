@@ -36,11 +36,10 @@
             android:layout_toLeftOf="@id/iv_userhead"
             android:autoLink="web"
             android:background="@drawable/chat_right_message_bg"
-            android:gravity="center"
+            android:gravity="left"
             android:lineSpacingExtra="2dp"
             android:maxWidth="225.0dip"
             android:padding="12dp"
-            android:text=""
             android:textSize="15sp" />
 
         <TextView

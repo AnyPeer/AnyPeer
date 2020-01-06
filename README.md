@@ -1,9 +1,10 @@
-![AnyPeer](/android/app/src/main/res/mipmap-xxxhdpi/app_icon.png)
+![AnyPeer](icon.png)
 
-# AnyPeer: Based on Elastos Carrier and SPV
-AnyPeer: is a social application powered by Elastos, which includes decentralized chat and decentralized wallet. In the future, we will join games based on Elastos smart contract sidechain.
+# AnyPeer: Powered by Elastos
 
 We are AnyPeer.
+
+AnyPeer: is a social application powered by Elastos, which includes decentralized chat and decentralized wallet.
 
 ## We can send
 * Text
@@ -11,6 +12,7 @@ We are AnyPeer.
 * Image
 * Voice
 * Video
+* ELA
 
 The sending operation only uses the Elastos Carrier. Image,Voice and Video use Carrier-Session-Stream to finish the operations.
 
@@ -24,3 +26,8 @@ You can transfer ela to your friend or a ela wallet. This operation only uses th
 
 * AnyPeer中文频道: https://0.plus/AnyPeer_CN
 * AnyPeer中文群: https://t.me/Anypeer_IM
+
+## Contact
+
+AnyPeer address:  9nxSweVXFhuHSC6rjEz6QH447T5Vy2zBvmJKxqZMW3zamhSwbm8J
+

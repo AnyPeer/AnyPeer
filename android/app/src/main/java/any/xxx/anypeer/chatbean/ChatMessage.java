@@ -15,6 +15,8 @@ public class ChatMessage extends RealmObject {
     private int type;
     private int direct;
     private int status;
+    private String fromId;
+    private String fromName;
 
     private ChatConversation owners;
 
@@ -163,6 +165,22 @@ public class ChatMessage extends RealmObject {
 
     public void setOwners(ChatConversation owners) {
         this.owners = owners;
+    }
+
+    public String getFromId() {
+        return fromId;
+    }
+
+    public void setFromId(String fromId) {
+        this.fromId = fromId;
+    }
+
+    public String getFromName() {
+        return fromName;
+    }
+
+    public void setFromName(String fromName) {
+        this.fromName = fromName;
     }
 
     @Override

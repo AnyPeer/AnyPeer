@@ -3,11 +3,11 @@ package any.xxx.anypeer.moudle.chat;
 import android.text.Spannable;
 import android.widget.EditText;
 
-import com.sj.emoji.EmojiDisplay;
-import com.sj.emoji.EmojiSpan;
 
 import java.util.regex.Matcher;
 
+import any.xxx.anypeer.widget.emoji.EmojiDisplay;
+import any.xxx.anypeer.widget.emoji.EmojiSpan;
 import sj.keyboard.interfaces.EmoticonFilter;
 import sj.keyboard.utils.EmoticonsKeyboardUtils;
 

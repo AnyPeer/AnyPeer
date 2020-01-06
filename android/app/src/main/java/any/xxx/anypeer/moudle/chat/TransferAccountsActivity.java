@@ -33,6 +33,7 @@ public class TransferAccountsActivity extends BaseActivity implements TextWatche
     private ImageView ivClear;
     private Button btSure;
     private EditText etAsset;
+    private EditText etElaAddress;
 
     private PayFragment fragment = new PayFragment();
 
@@ -51,8 +52,14 @@ public class TransferAccountsActivity extends BaseActivity implements TextWatche
         name = getIntent().getStringExtra(NAME);
         gender = getIntent().getStringExtra(GENDER);
 
+        //Transfer to using a friend's ELA address.
         if (name.isEmpty()) {
             name = friendWalletAddress;
+        }
+
+        //Transfer to using ELA address.
+        if (name.isEmpty()) {
+            findViewById(R.id.rl_transferto).setVisibility(View.VISIBLE);
         }
 
         mHeader = findViewById(R.id.iv_header);
@@ -62,6 +69,7 @@ public class TransferAccountsActivity extends BaseActivity implements TextWatche
         ivClear = findViewById(R.id.iv_clear);
         btSure = findViewById(R.id.bt_sure);
         etAsset = findViewById(R.id.et_money);
+        etElaAddress = findViewById(R.id.et_elaaddress);
         TextView transferBalance = findViewById(R.id.transfer_balance);
         String infoFormat = getResources().getString(R.string.transfer_amount_balance);
         if (AnyWallet.getInstance() != null) {
@@ -110,6 +118,26 @@ public class TransferAccountsActivity extends BaseActivity implements TextWatche
         btSure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+            	if (!isValidInput(etAsset.getText().toString().trim())) {
+		            Utils.showShortToast(TransferAccountsActivity.this, getString(R.string.transfer_amount_least));
+		            return;
+	            }
+
+                AnyWallet wallet = AnyWallet.getInstance();
+                String elaAddress = etElaAddress.getText().toString().trim();
+                if (name.isEmpty()) {
+                    if (wallet != null && wallet.isAddressValid(elaAddress)) {
+                        name = elaAddress;
+                    }
+                    else {
+                        Utils.showShortToast(TransferAccountsActivity.this, getString(R.string.transfer_friend_address_invalid));
+                        return;
+                    }
+                }
+
+                if (friendWalletAddress == null || friendWalletAddress.isEmpty()) {
+                    friendWalletAddress = elaAddress;
+                }
                 Bundle bundle = new Bundle();
                 bundle.putString(PayFragment.EXTRA_TITLE, getString(R.string.transfer_to) + name);
                 bundle.putString(PayFragment.EXTRA_CONTENT, etAsset.getText().toString().trim() + "  " + AnyWallet.ELA);
@@ -118,6 +146,18 @@ public class TransferAccountsActivity extends BaseActivity implements TextWatche
                 fragment.show(getSupportFragmentManager(), "Pay");
             }
         });
+    }
+
+    private static boolean isValidInput(String input) {
+    	try {
+		    final String zero = "0";
+		    return Double.doubleToLongBits(Double.parseDouble(input)) > Double.doubleToLongBits(Double.parseDouble(zero));
+	    }
+    	catch (Exception e){
+    		e.printStackTrace();
+	    }
+
+    	return false;
     }
 
     @Override
@@ -175,8 +215,8 @@ public class TransferAccountsActivity extends BaseActivity implements TextWatche
         }
 
         long balance = wallet.getBalance();
-        if (friendWalletAddress == null) {
-            Utils.showShortToast(this, "The Friend's wallet is invalid");
+        if (friendWalletAddress == null || friendWalletAddress.isEmpty()) {
+            Utils.showShortToast(this, getString(R.string.transfer_friend_address_invalid));
         } else {
             double damount = Double.parseDouble(etAsset.getText().toString().trim());
             long amount = Math.round(damount * AnyWallet.BASE_TRANSFER);

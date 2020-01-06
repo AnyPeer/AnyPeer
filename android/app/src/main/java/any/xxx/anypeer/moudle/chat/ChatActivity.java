@@ -2,7 +2,6 @@ package any.xxx.anypeer.moudle.chat;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -32,7 +31,6 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
@@ -40,12 +38,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.google.gson.Gson;
 import com.mabeijianxi.smallvideorecord2.DeviceUtils;
 import com.mabeijianxi.smallvideorecord2.JianXiCamera;
 import com.mabeijianxi.smallvideorecord2.MediaRecorderActivity;
 import com.mabeijianxi.smallvideorecord2.model.MediaRecorderConfig;
-import com.sj.emoji.DefEmoticons;
-import com.sj.emoji.EmojiBean;
 
 import org.elastos.carrier.FriendInfo;
 
@@ -69,8 +67,11 @@ import any.xxx.anypeer.moudle.main.ContactAdapter;
 import any.xxx.anypeer.util.EventBus;
 import any.xxx.anypeer.util.FileUtils;
 import any.xxx.anypeer.util.NetUtils;
+import any.xxx.anypeer.util.PrefereneceUtil;
 import any.xxx.anypeer.util.Utils;
 import any.xxx.anypeer.util.VoiceRecorder;
+import any.xxx.anypeer.widget.emoji.DefEmoticons;
+import any.xxx.anypeer.widget.emoji.EmojiBean;
 import sj.keyboard.XhsEmoticonsKeyBoard;
 import sj.keyboard.adpater.EmoticonsAdapter;
 import sj.keyboard.adpater.PageSetAdapter;
@@ -88,64 +89,34 @@ import top.zibin.luban.OnCompressListener;
 import static any.xxx.anypeer.chatbean.ChatMessage.Type.TXT;
 
 public class ChatActivity extends AppCompatActivity implements IMessageCallback, MessageAdapter.HeaderOnClick, SendVideoManager.Callback {
-    private static final int REQUEST_CODE_EMPTY_HISTORY = 2;
-    public static final int REQUEST_CODE_CONTEXT_MENU = 3;
-    private static final int REQUEST_CODE_MAP = 4;
-    public static final int REQUEST_CODE_TEXT = 5;
-    public static final int REQUEST_CODE_VOICE = 6;
-    public static final int REQUEST_CODE_PICTURE = 7;
-    public static final int REQUEST_CODE_LOCATION = 8;
-    public static final int REQUEST_CODE_NET_DISK = 9;
-    public static final int REQUEST_CODE_FILE = 10;
-    public static final int REQUEST_CODE_COPY_AND_PASTE = 11;
-    public static final int REQUEST_CODE_PICK_VIDEO = 12;
-    public static final int REQUEST_CODE_DOWNLOAD_VIDEO = 13;
-    public static final int REQUEST_CODE_VIDEO = 14;
-    public static final int REQUEST_CODE_DOWNLOAD_VOICE = 15;
-    public static final int REQUEST_CODE_SELECT_USER_CARD = 16;
-    public static final int REQUEST_CODE_SEND_USER_CARD = 17;
-    public static final int REQUEST_CODE_CAMERA = 18;
-    public static final int REQUEST_CODE_LOCAL = 19;
-    public static final int REQUEST_CODE_CLICK_DESTORY_IMG = 20;
-    public static final int REQUEST_CODE_GROUP_DETAIL = 21;
-    public static final int REQUEST_CODE_SELECT_VIDEO = 23;
-    public static final int REQUEST_CODE_SELECT_FILE = 24;
-    public static final int REQUEST_CODE_ADD_TO_BLACKLIST = 25;
-    public static final int REQUEST_CAMERA = 26;
-    public static final int REQUEST_RECORD_AUDIO = 27;
-    public static final int REQUEST_CODE_TRANSFER = 28;
-
     public static final int RESULT_CODE_COPY = 1;
     public static final int RESULT_CODE_DELETE = 2;
-    public static final int RESULT_CODE_FORWARD = 3;
-    public static final int RESULT_CODE_OPEN = 4;
-    public static final int RESULT_CODE_DWONLOAD = 5;
-    public static final int RESULT_CODE_TO_CLOUD = 6;
-    public static final int RESULT_CODE_EXIT_GROUP = 7;
-    public static final int RESULT_CODE_RETRY = 8;
-
-    public static final int CHATTYPE_SINGLE = 1;
-    public static final int CHATTYPE_GROUP = 2;
-
-
-    public static final String COPY_IMAGE = "EASEMOBIMG";
+    public static final int REQUEST_CODE_CONTEXT_MENU = 3;
+    public static final int REQUEST_CODE_VIDEO = 4;
+    public static final int REQUEST_CODE_CAMERA = 5;
+    public static final int REQUEST_CODE_LOCAL = 6;
+    public static final int REQUEST_CAMERA = 7;
+    public static final int REQUEST_RECORD_AUDIO = 8;
+    public static final int REQUEST_CODE_TRANSFER = 9;
+    public static final int RESULT_CODE_RETRY = 10;
+	public static final int RESULT_CODE_ADDFRIEND = 11;
+	public static final int REQUEST_CODE_GROUP_DETAIL = 12;
+	public static final int RESULT_CODE_DELETE_GROUP_MESSAGE = 13;
 
     private XhsEmoticonsKeyBoard mEKeyBoard;
     private TextView mTitle;
-    private ImageView mBackground;
     private ListView mListView;
-    private View mLayout;
     private View recordingContainer;
     private TextView recordingHint;
     private ImageView micImage;
+    private ImageView imgRight;
 
     private MessageAdapter mAdapter;
     private InputMethodManager mInputMethodManager;
     private ClipboardManager mClipboard;
 
-    private String mUserName;
+    private String mName;
     private String mUserId;
-    private String mSex;
     private ChatConversation mEMConversation;
     private ChatManager mChatManager;
     private NetUtils mNetUtils;
@@ -159,7 +130,8 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
 
     private static final String TAG = "ChatActivity";
 
-    public static boolean IS_CHAT_START = false;
+    private static boolean IS_CHAT_START = false;
+    private static String ACTIVE_USER_ID = "";
 
     private Handler micImageHandler = new Handler() {
         @Override
@@ -193,6 +165,7 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
         setUpView();
     }
 
+    private static boolean sShowAutoMessage = true;
     @Override
     public void processMessage(Message msg) {
         switch (msg.what) {
@@ -229,23 +202,23 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
 
                 break;
             }
-	        case NetUtils.ANYSTATE.FILE_TRANSFER_SEND_ERROR: {
-	        	//If it has error when using session, Update the message item.
-		        Bundle data = msg.getData();
-		        if (data != null) {
-			        String userId = data.getString(NetUtils.ANYSTATE.USERID);
-			        String msgId = data.getString(NetUtils.ANYSTATE.MSGID);
+            case NetUtils.ANYSTATE.FILE_TRANSFER_SEND_ERROR: {
+                //If it has error when using session, Update the message item.
+                Bundle data = msg.getData();
+                if (data != null) {
+                    String userId = data.getString(NetUtils.ANYSTATE.USERID);
+                    String msgId = data.getString(NetUtils.ANYSTATE.MSGID);
 
-			        if (userId != null && userId.equals(mUserId)) {
-				        ChatDBManager.getInstance().setMessageStatus(msgId, ChatMessage.Status.FAIL);
-			        }
+                    if (userId != null && userId.equals(mUserId)) {
+                        ChatDBManager.getInstance().setMessageStatus(msgId, ChatMessage.Status.FAIL);
+                    }
 
-			        mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(userId);
+                    mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(userId);
 
-			        mAdapter.refresh();
-		        }
-				break;
-	        }
+                    mAdapter.refresh();
+                }
+                break;
+            }
             case NetUtils.ANYSTATE.FILE_TRANSFER_FEEDBACK: {
                 Bundle data = msg.getData();
                 if (data != null) {
@@ -256,7 +229,7 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
                         ChatDBManager.getInstance().setMessageStatus(msgId, ChatMessage.Status.SUCCESS);
                     }
 
-                    mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(userId);
+                    mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(userId);
 
                     mAdapter.refresh();
                 }
@@ -264,6 +237,58 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
             }
             case NetUtils.ANYSTATE.FRIENDCONNECTION: {
                 //TODO the friend is online.
+                break;
+            }
+            case NetUtils.ANYSTATE.GROUP_PEER_CHANGED: {
+                setTitle(mName);
+                break;
+            }
+            case NetUtils.ANYSTATE.GROUP_MESSAGE: {
+                try {
+                    int type = msg.arg1;
+                    boolean isFromBot = msg.arg2 == 1;
+                    Bundle data = msg.getData();
+                    String title = data.getString(NetUtils.ANYSTATE.GROUP_TITLE);
+                    String message = data.getString(NetUtils.ANYSTATE.DATA);
+                    String from = data.getString(NetUtils.ANYSTATE.FROM);
+
+                    if (isFromBot) {
+                        //The message from bot.
+                        if (sShowAutoMessage) {
+                            //Show the auto-message from AnyBot
+                            sShowAutoMessage = false;
+                        }
+
+	                    if (title != null && title.equals(mName)) {
+		                    if (type == -1) {
+			                    onReceiveGroupMessage(title, from, message, ChatMessage.Type.TXT);
+		                    }
+		                    else {
+			                    onReceiveGroupMessage(title, from, message, ChatMessage.Type.getMsgType(type));
+		                    }
+	                    }
+                    }
+                    else {
+                        //Support type
+                        if (type == -1) {
+                            Utils.showLongToast(this, getString(R.string.group_message_upsupport));
+                        }
+
+                        if (title != null && title.equals(mName)) {
+                            if (type == -1) {
+                                onReceiveGroupMessage(title, from, message, ChatMessage.Type.TXT);
+                            }
+                            else {
+                                onReceiveGroupMessage(title, from, message, ChatMessage.Type.getMsgType(type));
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, String.format("title==[%s], message=====[%s]", title, message));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 break;
             }
             default: {
@@ -287,67 +312,122 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
     protected void onDestroy() {
         super.onDestroy();
         IS_CHAT_START = false;
-        SendVideoManager.getInstance().removeCallback(this);
 
-        unbindService(mServiceConnection);
+	    try {
+		    SendVideoManager.getInstance().removeCallback(this);
 
-        mMessageService.removeMessageCallback(ChatActivity.this);
-        mMessageService = null;
+		    unbindService(mServiceConnection);
+
+		    mMessageService.removeMessageCallback(ChatActivity.this);
+		    mMessageService = null;
+	    }
+	    catch (Exception e) {
+		    e.printStackTrace();
+	    }
     }
 
     @Override
     public void onBackPressed() {
-        EventBus.getInstance().notifyAllCallbakc();
+        EventBus.getInstance().notifyAllCallback(true);
         super.onBackPressed();
+    }
+
+    private void addFrinendDlg(String name, String address) {
+    	try {
+		    MaterialDialog.Builder builder = new MaterialDialog.Builder(ChatActivity.this);
+		    builder.onNegative((dialog, which) -> dialog.dismiss());
+
+		    builder.title(R.string.friend_add_text1);
+		    builder.content(getString(R.string.friend_add_ask_1) + name + getString(R.string.friend_add_ask_2));
+
+		    builder.negativeText(R.string.friend_add_no);
+		    builder.positiveText(R.string.friend_add_yes);
+
+		    builder.onPositive((dialog, which) -> {
+			    User user = new Gson().fromJson(PrefereneceUtil.getString(ChatActivity.this
+					    , User.USER), User.class);
+
+			    //TODO: maybe make the user input some thing.
+			    mNetUtils.addFriend(address, user.getUserName());
+
+			    dialog.dismiss();
+		    }).show();
+	    }
+	    catch (Exception e) {
+    		e.printStackTrace();
+	    }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        if (data == null) return;
+
         if (requestCode == REQUEST_CODE_CONTEXT_MENU) {
             switch (resultCode) {
-                case RESULT_CODE_COPY: // 复制消息
-                    ChatMessage copyMsg = mAdapter.getItem(data.getIntExtra("position", -1));
-                    mClipboard.setText(copyMsg.getMessage());
-                    break;
-                case RESULT_CODE_DELETE: // 删除消息
-                    ChatMessage deleteMsg = mAdapter.getItem(data.getIntExtra("position", -1));
-                    ChatDBManager.getInstance().removeMessage(deleteMsg.getMsgId());
-                    mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
-                    mAdapter.refresh();
-                    mListView.setSelection(data.getIntExtra("position", mAdapter.getCount()) - 1);
-                    break;
-
-                case RESULT_CODE_RETRY:
-
-                    ChatMessage retryMsg = mAdapter.getItem(data.getIntExtra("position", -1));
-                    ChatDBManager.getInstance().setMessageStatus(retryMsg.getMsgId(), ChatMessage.Status.INPROGRESS);
-                    mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
-                    mAdapter.notifyDataSetChanged();
-
-                    switch (ChatMessage.Type.getMsgType(retryMsg.getType())) {
-                        case TXT:
-                            mNetUtils.sendMessage(mUserId, retryMsg.getMessage(), getAssembledIdForTextSending(retryMsg.getMsgId(), TXT));
-                            break;
-
-                        case MONEY:
-                            mNetUtils.sendMessage(mUserId, retryMsg.getMessage(), retryMsg.getMsgId());
-                            break;
-
-                        case IMAGE:
-                        case VOICE:
-                        case VIDEO:
-                            mNetUtils.sendFile(mUserId, retryMsg.getFilePath(), ChatMessage.Type.getMsgType(retryMsg.getType()), retryMsg.getMsgId());
-                            break;
+                case RESULT_CODE_COPY: {
+	                ChatMessage copyMsg = mAdapter.getItem(data.getIntExtra("position", -1));
+	                mClipboard.setText(copyMsg.getMessage());
+	                Utils.showLongToast(this, getString(R.string.content_copyed));
+	                break;
+                }
+	            case RESULT_CODE_ADDFRIEND: {
+	                try {
+                        ChatMessage addFriendMsg = mAdapter.getItem(data.getIntExtra("position", -1));
+                        String id = addFriendMsg.getFromId();
+                        if (mNetUtils.isFriend(id)) {
+                            Utils.showLongToast(this, getString(R.string.menu_friend_already));
+                        }
+                        else {
+                            addFrinendDlg(addFriendMsg.getFromName(), addFriendMsg.getMessage());
+                        }
                     }
+                    catch (Exception e) {
+	                    e.printStackTrace();
+                    }
+		            break;
+	            }
+                case RESULT_CODE_DELETE: {// 删除消息
+	                ChatMessage deleteMsg = mAdapter.getItem(data.getIntExtra("position", -1));
+	                ChatDBManager.getInstance().removeMessage(deleteMsg.getMsgId());
+	                mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
+	                mAdapter.refresh();
+	                mListView.setSelection(data.getIntExtra("position", mAdapter.getCount()) - 1);
+	                break;
+                }
+                case RESULT_CODE_RETRY: {
+	                ChatMessage retryMsg = mAdapter.getItem(data.getIntExtra("position", -1));
+	                ChatDBManager.getInstance().setMessageStatus(retryMsg.getMsgId(), ChatMessage.Status.INPROGRESS);
+	                mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
+	                mAdapter.notifyDataSetChanged();
 
-                    break;
+	                switch (ChatMessage.Type.getMsgType(retryMsg.getType())) {
+		                case TXT:
+			                mNetUtils.sendMessage(mUserId, retryMsg.getMessage(), getAssembledIdForTextSending(retryMsg.getMsgId(), TXT));
+			                break;
+
+		                case MONEY:
+			                mNetUtils.sendMessage(mUserId, retryMsg.getMessage(), retryMsg.getMsgId());
+			                break;
+
+		                case IMAGE:
+		                case VOICE:
+		                case VIDEO:
+			                mNetUtils.sendFile(mUserId, retryMsg.getFilePath(), ChatMessage.Type.getMsgType(retryMsg.getType()), retryMsg.getMsgId());
+			                break;
+	                }
+	                break;
+                }
                 default:
                     break;
             }
 
             return;
+        }
+        if (resultCode == RESULT_CODE_DELETE_GROUP_MESSAGE) {
+            mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
+            mAdapter.refresh();
         }
 
         if (requestCode == REQUEST_CODE_CAMERA) {
@@ -381,6 +461,15 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
 
     }
 
+    private void setTitle(String title) {
+        if (mEMConversation.isGroup()) {
+            String extra = title + "(" + NetUtils.getInstance().peersCount(title) + ")";
+            mTitle.setText(extra);
+            return;
+        }
+        mTitle.setText(title);
+    }
+
     @SuppressLint("InvalidWakeLockTag")
     protected void initView() {
         mServiceConnection = new ChatActivity.MessageServiceConn();
@@ -388,30 +477,68 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
 
         mNetUtils = NetUtils.getInstance();
         mChatManager = ChatManager.getInstance(this);
-        mUserName = getIntent().getStringExtra(Utils.NAME);
+        mName = getIntent().getStringExtra(Utils.NAME);
         mUserId = getIntent().getStringExtra(Utils.USERID);
-        mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
+        ACTIVE_USER_ID = mUserId;
+
+        mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
+        if (mEMConversation == null) {
+            mEMConversation = new ChatConversation();
+            mEMConversation.setmUserId(mUserId);
+            ChatDBManager.getInstance().addConversation(mEMConversation);
+            mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
+        }
 
         mTitle = findViewById(any.xxx.anypeer.R.id.txt_title);
-        mBackground = findViewById(any.xxx.anypeer.R.id.img_back);
+        ImageView mBackground = findViewById(any.xxx.anypeer.R.id.img_back);
         recordingContainer = findViewById(R.id.view_talk);
         recordingHint = findViewById(R.id.recording_hint);
         micImage = findViewById(R.id.mic_image);
         animationDrawable = (AnimationDrawable) micImage.getBackground();
         animationDrawable.setOneShot(false);
+        imgRight = findViewById(R.id.img_right);
 
-        mTitle.setText(mUserName);
+        if (mEMConversation.isGroup()) {
+            IS_CHAT_START = true;
+            ACTIVE_USER_ID = mEMConversation.getGroupName();
+            imgRight.setImageResource(R.drawable.icon_more);
+            imgRight.setVisibility(View.VISIBLE);
+            imgRight.setOnClickListener(v -> {
+                Intent intent = new Intent(this, GroupDetailActivity.class);
+                intent.putExtra(GroupDetailActivity.GROUP_ID, mUserId);
+                startActivityForResult(intent, REQUEST_CODE_GROUP_DETAIL);
+            });
+        }
+
+        setTitle(mName);
 
         mBackground.setVisibility(View.VISIBLE);
         mBackground.setOnClickListener(view -> {
-            EventBus.getInstance().notifyAllCallbakc();
+            EventBus.getInstance().notifyAllCallback(true);
             finish();
         });
 
         mListView = findViewById(any.xxx.anypeer.R.id.list);
 
         mEKeyBoard = findViewById(any.xxx.anypeer.R.id.ek_bar);
-        mEKeyBoard.getBtnSend().setOnClickListener(view -> sendText(mEKeyBoard.getEtChat().getText().toString().trim(), TXT));
+        mEKeyBoard.getBtnSend().setOnClickListener(view -> {
+            if (mEMConversation.isGroup()) {
+                if (!NetUtils.getInstance().isForbidden(mName)) {
+                    sendText(mEKeyBoard.getEtChat().getText().toString().trim(), TXT);
+                }
+                else {
+                    Toast.makeText(ChatActivity.this, R.string.group_forbidden_message, Toast.LENGTH_SHORT).show();
+                }
+            }
+            else {
+                sendText(mEKeyBoard.getEtChat().getText().toString().trim(), TXT);
+            }
+        });
+
+        if (mEMConversation.isGroup()) {
+            mEKeyBoard.findViewById(R.id.btn_voice_or_text).setVisibility(View.GONE);
+        }
+
 
         mEKeyBoard.addOnFuncKeyBoardListener(new FuncLayout.OnFuncKeyBoardListener() {
             @Override
@@ -428,81 +555,75 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
         mEKeyBoard.getBtnVoice().setOnTouchListener(new PressToSpeakListen());
         voiceRecorder = new VoiceRecorder(micImageHandler);
 
-        View funcView = LayoutInflater.from(this).inflate(R.layout.func_layout, null);
-        mEKeyBoard.addFuncView(funcView);
+        if (!mEMConversation.isGroup()) {
+            View funcView = LayoutInflater.from(this).inflate(R.layout.func_layout, null);
+            mEKeyBoard.addFuncView(funcView);
 
-        ImageView ivTr = funcView.findViewById(R.id.iv_tm);
-        ivTr.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(ChatActivity.this, TransferAccountsActivity.class);
-                User user = FriendManager.getInstance().getUserById(mUserId);
-                intent.putExtra(TransferAccountsActivity.NAME, user.getUserName());
-                intent.putExtra(TransferAccountsActivity.GENDER, user.getGender());
-                intent.putExtra(TransferAccountsActivity.ADDRESS, user.getWalletAddress());
-                startActivityForResult(intent, REQUEST_CODE_TRANSFER);
-            }
-        });
-
-        ImageView ivCamera = funcView.findViewById(R.id.iv_camera);
-        ImageView ivPhoto = funcView.findViewById(R.id.iv_photo);
-        ImageView ivVideo = funcView.findViewById(R.id.iv_video);
-
-        ivCamera.setOnClickListener(v -> {
-            if (ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                    || ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                requestCameraPermission();
-            } else {
-                cameraFile = new File(getFilesDir(), "anychat_" + System.currentTimeMillis() + ".jpg");
-                cameraFile.getParentFile().mkdirs();
-                startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cameraFile)), REQUEST_CODE_CAMERA);
-            }
-        });
-
-        ivPhoto.setOnClickListener(v -> {
-            if (ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                    || ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                requestCameraPermission();
-            } else {
-                Intent intent;
-                if (Build.VERSION.SDK_INT < 19) {
-                    intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.setType("video/;image/");
-                } else {
-                    intent = new Intent(Intent.ACTION_PICK);
-                    intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//                        intent.setData(MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+            ImageView ivTr = funcView.findViewById(R.id.iv_tm);
+            ivTr.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(ChatActivity.this, TransferAccountsActivity.class);
+                    User user = FriendManager.getInstance().getUserById(mUserId);
+                    intent.putExtra(TransferAccountsActivity.NAME, user.getUserName());
+                    intent.putExtra(TransferAccountsActivity.GENDER, user.getGender());
+                    intent.putExtra(TransferAccountsActivity.ADDRESS, user.getWalletAddress());
+                    startActivityForResult(intent, REQUEST_CODE_TRANSFER);
                 }
-                startActivityForResult(intent, REQUEST_CODE_LOCAL);
-            }
-        });
+            });
 
-        ivVideo.setOnClickListener(v -> {
-            if (ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                    || ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                requestCameraPermission();
-            } else {
-//                    videoFile = new File(Environment.getExternalStorageDirectory(), "anychat_" + System.currentTimeMillis() + ".mp4");
-//                    videoFile.getParentFile().mkdirs();
-//
-//                    startActivityForResult(new Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-//                            .addCategory("android.intent.category.DEFAULT")
-//                            .putExtra(MediaStore.EXTRA_DURATION_LIMIT,15)
-//                            .putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(videoFile)), REQUEST_CODE_VIDEO);
+            ImageView ivCamera = funcView.findViewById(R.id.iv_camera);
+            ImageView ivPhoto = funcView.findViewById(R.id.iv_photo);
+            ImageView ivVideo = funcView.findViewById(R.id.iv_video);
 
-                MediaRecorderConfig config = new MediaRecorderConfig.Buidler()
-                        .fullScreen(true)
-                        .smallVideoWidth(0)
-                        .smallVideoHeight(480)
-                        .recordTimeMax(15000)
-                        .recordTimeMin(1000)
-                        .maxFrameRate(20)
-                        .videoBitrate(580000)
-                        .captureThumbnailsTime(1)
-                        .build();
-                MediaRecorderActivity.goSmallVideoRecorder(ChatActivity.this, SendSmallVideoActivity.class.getName(), config);
-            }
-        });
+            ivCamera.setOnClickListener(v -> {
+                if (ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                        || ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    requestCameraPermission();
+                } else {
+                    cameraFile = new File(getFilesDir(), "anypeer_" + System.currentTimeMillis() + ".jpg");
+                    cameraFile.getParentFile().mkdirs();
+                    startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(cameraFile)), REQUEST_CODE_CAMERA);
+                }
+            });
+
+            ivPhoto.setOnClickListener(v -> {
+                if (ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                        || ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    requestCameraPermission();
+                } else {
+                    Intent intent;
+                    if (Build.VERSION.SDK_INT < 19) {
+                        intent = new Intent(Intent.ACTION_GET_CONTENT);
+                        intent.setType("video/;image/");
+                    } else {
+                        intent = new Intent(Intent.ACTION_PICK);
+                        intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//                        intent.setData(MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+                    }
+                    startActivityForResult(intent, REQUEST_CODE_LOCAL);
+                }
+            });
+
+            ivVideo.setOnClickListener(v -> {
+                if (ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                        || ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    requestCameraPermission();
+                } else {
+                    MediaRecorderConfig config = new MediaRecorderConfig.Buidler()
+                            .fullScreen(true)
+                            .smallVideoWidth(0)
+                            .smallVideoHeight(480)
+                            .recordTimeMax(15000)
+                            .recordTimeMin(1000)
+                            .maxFrameRate(20)
+                            .videoBitrate(580000)
+                            .captureThumbnailsTime(1)
+                            .build();
+                    MediaRecorderActivity.goSmallVideoRecorder(ChatActivity.this, SendSmallVideoActivity.class.getName(), config);
+                }
+            });
+        }
 
         initEmoticon();
     }
@@ -547,15 +668,32 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
 
     private void onReceive(String friendMessage, ChatMessage.Type msgType) {
         ChatMessage message = new ChatMessage();
-	    message.setMsgId(UUID.randomUUID().toString());
-	    message.setDirect(ChatMessage.Direct.RECEIVE.ordinal());
-	    message.setUnread(false);
-	    message.setType(msgType.ordinal());
-	    message.setMessage(friendMessage);
+        message.setMsgId(UUID.randomUUID().toString());
+        message.setDirect(ChatMessage.Direct.RECEIVE.ordinal());
+        message.setUnread(false);
+        message.setType(msgType.ordinal());
+        message.setMessage(friendMessage);
 
         ChatDBManager.getInstance().addMessage(mUserId, message);
-        mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
+        mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
 
+        mAdapter.refresh();
+
+        mListView.setSelection(mListView.getCount() - 1);
+    }
+
+    private void onReceiveGroupMessage(String groupID, String userId, String friendMessage, ChatMessage.Type msgType) {
+        ChatMessage message = new ChatMessage();
+        message.setMsgId(UUID.randomUUID().toString());
+        message.setDirect(ChatMessage.Direct.RECEIVE.ordinal());
+        message.setUnread(false);
+        message.setType(msgType.ordinal());
+        message.setMessage(friendMessage);
+
+        message.setFromId(userId);
+
+        ChatDBManager.getInstance().addMessage(groupID, message);
+        mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(groupID);
         mAdapter.refresh();
 
         mListView.setSelection(mListView.getCount() - 1);
@@ -596,7 +734,7 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
         }
 
         ChatDBManager.getInstance().addMessage(mUserId, message);
-        mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
+        mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
 
         mAdapter.refresh();
 
@@ -614,15 +752,27 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
             message.setMessage(content);
 
             ChatDBManager.getInstance().addMessage(mUserId, message);
-            mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
+            mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
             mAdapter.refresh();
 
             mEKeyBoard.getEtChat().setText("");
 
             mListView.setSelection(mListView.getCount() - 1);
 
-	        //TODO Add the message type to msgId
-            mNetUtils.sendMessage(mUserId, content, getAssembledIdForTextSending(msgId , type));
+            if (mEMConversation.isGroup()) {
+                try {
+                    mNetUtils.groupSendMessage(mName, content, type);
+                }
+                catch (Exception e) {
+                    Toast.makeText(ChatActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+
+	                //TODO Restart group invite?
+	                mNetUtils.sendGroupLeaveMessage(mName);
+                }
+            } else {
+                //TODO Add the message type to msgId
+                mNetUtils.sendMessage(mUserId, content, getAssembledIdForTextSending(msgId, type));
+            }
         }
     }
 
@@ -642,7 +792,7 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
             message.setFilePath(picPath);
 
             ChatDBManager.getInstance().addMessage(mUserId, message);
-            mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
+            mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
             mAdapter.refresh();
 
             mEKeyBoard.reset();
@@ -685,7 +835,7 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
             message.setFilePath(voicePath);
 
             ChatDBManager.getInstance().addMessage(mUserId, message);
-            mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
+            mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
             mAdapter.refresh();
 
             mEKeyBoard.reset();
@@ -718,7 +868,7 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
             message.setLocalThumb(imageFilePath);
 
             ChatDBManager.getInstance().addMessage(mUserId, message);
-            mEMConversation = ChatDBManager.getInstance().getChatConversaionByUserId(mUserId);
+            mEMConversation = ChatDBManager.getInstance().getChatConversationByUserId(mUserId);
             mAdapter.refresh();
 
             mEKeyBoard.reset();
@@ -732,24 +882,56 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
     public void onClick(int position) {
         ChatMessage emMessage = mEMConversation.getmMessages().get(position);
         if (ChatMessage.Direct.getMsgDirect(emMessage.getDirect()) == ChatMessage.Direct.RECEIVE) {
-            User user = null;
-            List<FriendInfo> friendInfos = NetUtils.getInstance().getFriends();
-            if (friendInfos != null) {
-                for (int i = 0; i < friendInfos.size(); i++) {
-                    if (mUserId.equals(friendInfos.get(i).getUserId())) {
-                        FriendInfo info = friendInfos.get(i);
-                        user = ContactAdapter.friendInfo2User(info);
+            if (!mEMConversation.isGroup()) {
+                User user = null;
+                List<FriendInfo> friendInfos = NetUtils.getInstance().getFriends();
+                if (friendInfos != null) {
+                    for (int i = 0; i < friendInfos.size(); i++) {
+                        if (mUserId.equals(friendInfos.get(i).getUserId())) {
+                            FriendInfo info = friendInfos.get(i);
+                            user = ContactAdapter.friendInfo2User(info);
+                        }
                     }
                 }
-            }
 
-            if (TextUtils.isEmpty(user.getUserName())) {
-                user.setUserName(mUserName);
-            }
+                if (TextUtils.isEmpty(user.getUserName())) {
+                    user.setUserName(mName);
+                }
 
-            Intent intent = new Intent(this, FriendDetailActivity.class);
-            intent.putExtra(Utils.USERID, user.getUserId());
-            startActivity(intent);
+                Intent intent = new Intent(this, FriendDetailActivity.class);
+                intent.putExtra(Utils.USERID, user.getUserId());
+                startActivity(intent);
+            }
+            else {
+	            // TODO add group friend
+//	            try {
+//	            	String id = emMessage.getFromId();
+//		            FriendInfo fi = NetUtils.getInstance().getFriend(id);
+//		            if (fi != null) {
+//			            Intent intent = new Intent(this, FriendDetailActivity.class);
+//			            intent.putExtra(Utils.USERID, id);
+//			            startActivity(intent);
+//			            finish();
+//		            }
+//		            else {
+//			            MaterialDialog.Builder builder = new MaterialDialog.Builder(this);
+//			            builder.onNegative((dialog, which) -> dialog.dismiss());
+//
+//		                builder.title(R.string.friend_add_text1);
+//		                String name = NetUtils.getInstance().peerName(id);
+//		                builder.content(getString(R.string.friend_add_ask_1) + name + getString(R.string.friend_add_ask_2));
+//
+//			            builder.negativeText(R.string.friend_add_no);
+//			            builder.positiveText(R.string.friend_add_yes);
+//
+//			            builder.onPositive((dialog, which) -> {
+//                            dialog.dismiss();
+//                        }).show();
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+            }
         }
     }
 
@@ -962,21 +1144,30 @@ public class ChatActivity extends AppCompatActivity implements IMessageCallback,
         }
     }
 
+    public static boolean isActiveChat(String userId) {
+        if (userId != null) {
+            return IS_CHAT_START && userId.equals(ACTIVE_USER_ID);
+        }
+
+        return false;
+    }
+
     private static void initSmallVideo() {
-        // 设置拍摄视频缓存路径
+        // Set the store path
         File dcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
         if (DeviceUtils.isZte()) {
             if (dcim.exists()) {
-                JianXiCamera.setVideoCachePath(dcim + "/anychat/");
+                JianXiCamera.setVideoCachePath(dcim + "/anypeer/");
             } else {
                 JianXiCamera.setVideoCachePath(dcim.getPath().replace("/sdcard/",
                         "/sdcard-ext/")
-                        + "/anychat/");
+                        + "/anypeer/");
             }
         } else {
-            JianXiCamera.setVideoCachePath(dcim + "/anychat/");
+            JianXiCamera.setVideoCachePath(dcim + "/anypeer/");
         }
-        // 初始化拍摄
+
+        // initialize
         JianXiCamera.initialize(false, null);
     }
 }

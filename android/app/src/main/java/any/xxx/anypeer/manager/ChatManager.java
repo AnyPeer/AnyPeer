@@ -17,6 +17,7 @@ import java.util.List;
 public class ChatManager {
     private static final String TAG = "ChatManager";
     private static final String IS_MESSAGE_SHOW_NOTIFICATION = "is_message_show_notification";
+    private static final String IS_MESSAGE_VOICE = "is_message_voice";
     private static ChatManager instance = null;
     private List<EMConversation> mChatList;
     private Context mContext;
@@ -275,4 +276,11 @@ public class ChatManager {
         return PrefereneceUtil.getBoolean(context, IS_MESSAGE_SHOW_NOTIFICATION, true);
     }
 
+    public void saveIsMessageShowVoice(Context context, boolean isShow) {
+        PrefereneceUtil.saveBoolean(context, IS_MESSAGE_VOICE, isShow);
+    }
+
+    public boolean getIsMessageVoice(Context context) {
+        return PrefereneceUtil.getBoolean(context, IS_MESSAGE_VOICE, true);
+    }
 }

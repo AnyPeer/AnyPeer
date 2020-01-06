@@ -46,6 +46,8 @@ public class BarCodeActivity extends BaseActivity {
 		        //Wallet's receipt Address
 		        qrcodeString = intent.getStringExtra(Utils.ADDRESS);
 		        ((TextView) findViewById(R.id.txt_title)).setText(R.string.transfer_address_text);
+		        findViewById(R.id.qrcodeString).setVisibility(View.VISIBLE);
+		        ((TextView) findViewById(R.id.qrcodeString)).setText(qrcodeString);
 	        }
 
 	        ImageView mQrcode = findViewById(R.id.qrcode);

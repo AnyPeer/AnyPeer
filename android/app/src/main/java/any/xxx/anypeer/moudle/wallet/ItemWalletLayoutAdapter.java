@@ -1,6 +1,7 @@
 package any.xxx.anypeer.moudle.wallet;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,17 +12,33 @@ import java.util.List;
 import java.util.Locale;
 
 import any.xxx.anypeer.R;
+import any.xxx.anypeer.db.FriendManager;
 import any.xxx.anypeer.util.AnyWallet;
 
 public class ItemWalletLayoutAdapter extends BaseAdapter {
+    private static final String TAG = "ItemWalletLayoutAdapter";
     private LayoutInflater mInflater;
     private List<AnyWallet.TransactionItem> mTransactions;
+    private Context mContext;
 
     ItemWalletLayoutAdapter(Context context) {
+        mContext = context;
         mInflater = LayoutInflater.from(context);
         if (AnyWallet.getInstance() != null) {
             mTransactions = AnyWallet.getInstance().getAllTransactionItems();
         }
+        Log.d(TAG, "mTransactions============================="+mTransactions);
+        if (mTransactions != null) {
+            Log.d(TAG, "mTransactions.size="+mTransactions.size());
+        }
+    }
+
+    void updateList() {
+        if (AnyWallet.getInstance() != null) {
+            mTransactions = AnyWallet.getInstance().getAllTransactionItems();
+        }
+
+        notifyDataSetChanged();
     }
 
     @Override
@@ -59,15 +76,32 @@ public class ItemWalletLayoutAdapter extends BaseAdapter {
         try {
             AnyWallet.TransactionItem item = (AnyWallet.TransactionItem) object;
             if (item != null) {
-                String asset;
+                String userName = " ?";
+                if (item.mOtherAddress != null && !item.mOtherAddress.isEmpty()) {
+                    userName = FriendManager.getInstance().getUserNameByAddress(item.mOtherAddress);
+                    if (userName == null && item.mOtherAddress.equals(AnyWallet.ANYBOT_ELAADDRESS)) {
+                        userName = mContext.getString(R.string.smart_reboot);
+                    }
+                }
+
+                if (userName == null) {
+                    userName = " ?";
+                }
+
                 if (item.mInAmount > 0) {
-                    holder.tvPayTitle.setText(R.string.wallet_inamount);
-                    asset = String.format(Locale.US, "%.4f %s", AnyWallet.TOELA(item.mInAmount), AnyWallet.ELA);
+                    String text = mContext.getString(R.string.wallet_inamount) + " ("
+                            + mContext.getString(R.string.wallet_inamount_from) + " " + userName + ")";
+
+                    holder.tvPayTitle.setText(text);
+                    String asset = String.format(Locale.US, "%.4f %s", AnyWallet.TOELA(item.mInAmount), AnyWallet.ELA);
                     holder.tvPayAsset.setText(asset);
                 }
                 else if (item.mOutAmount > 0) {
-                    holder.tvPayTitle.setText(R.string.wallet_outamount);
-                    asset = String.format(Locale.US, "%.4f %s", AnyWallet.TOELA(item.mOutAmount), AnyWallet.ELA);
+                    String text = mContext.getString(R.string.wallet_outamount) + " ("
+                            + mContext.getString(R.string.wallet_outamount_to) + " " + userName + ")";
+
+                    holder.tvPayTitle.setText(text);
+                    String asset = String.format(Locale.US, "%.4f %s", AnyWallet.TOELA(item.mOutAmount), AnyWallet.ELA);
                     holder.tvPayAsset.setText(asset);
                 }
 

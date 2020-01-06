@@ -12,7 +12,7 @@ public class EventBus {
     }
 
     public interface Callback {
-        void callback();
+        void callback(boolean isGoMain);
     }
 
     public void addCallback(Callback callback) {
@@ -27,9 +27,9 @@ public class EventBus {
         }
     }
 
-    public void notifyAllCallbakc() {
+    public void notifyAllCallback(boolean isGoMain) {
         for (Callback callback : callbacks) {
-            callback.callback();
+            callback.callback(isGoMain);
         }
     }
 

@@ -27,6 +27,21 @@ public class ExampleUnitTest {
     }
 
     @Test
+    public void testDouble() {
+        String[] array = new String[5];
+        array[0] = "0";
+        array[1] = "0.0";
+        array[2] = "0.00";
+        array[3] = "0.000";
+        array[4] = "0.0000";
+        for (int i = 0; i < 5; i++) {
+            for (int j = i + 1; j < 5; j++) {
+                assertEquals(Double.doubleToLongBits(Double.parseDouble(array[i])), Double.doubleToLongBits(Double.parseDouble(array[j])));
+            }
+        }
+    }
+
+    @Test
     public void testInt2BytesArray() {
         for (int size = 0; size < 100000000; size ++) {
             byte[] data = int2BytesArray(size);
@@ -62,6 +77,24 @@ public class ExampleUnitTest {
         assertEquals(messageValue, newValue);
 	    newValue = new String(bytes, 5, 4);
 	    assertEquals("6789", newValue);
+    }
+
+    @Test
+    public void testAny() {
+        String value = "925B9085-1BC3-49E6-9298-C4E45BEE28EA0 测试";
+        String[] args = parseValue(value.getBytes());
+        assertEquals("925B9085-1BC3-49E6-9298-C4E45BEE28EA0", args[0]);
+        assertEquals("测试", args[1]);
+
+        String msgId = args[0].substring(0, args[0].length() - 1);
+        assertEquals("925B9085-1BC3-49E6-9298-C4E45BEE28EA", msgId);
+        assertTrue(isValidUUID(msgId));
+    }
+
+    private static boolean isValidUUID(String uuid) {
+        // "b3ad6601-e329-498f-8c51-82d4ea14508c"
+        String regex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+        return uuid != null && uuid.matches(regex);
     }
 
     @Test

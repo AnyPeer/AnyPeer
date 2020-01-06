@@ -2,14 +2,25 @@
     <string name="app_name">AnyPeer</string>
     <string name="chat_title">AnyPeer</string>
     <string name="contacts">通讯录</string>
+    <string name="rank">节点</string>
     <string name="me">我</string>
     <string name="no_msg">暂时没有新消息</string>
     <string name="wallet">钱包</string>
     <string name="settings">设置</string>
+    <string name="value">投票数:</string>
+    <string name="num">比例:</string>
+    <string name="rank_title">排名:</string>
+    <string name="node_title">亦来云节点</string>
+    <string name="load_end">没有更多数据</string>
+    <string name="load_failed">加载失败，请点我重试</string>
+    <string name="loading">正在加载中&#8230;</string>
 
+    <string name="menu_friend_already">你们已经是好友了</string>
     <string name="menu_addfriend">添加朋友</string>
     <string name="menu_qrcode">扫一扫</string>
-    <string name="menu_receiptaddress">收款地址</string>
+    <string name="menu_receiptaddress">ELA 收款地址</string>
+    <string name="menu_mychataddress">我的联系地址</string>
+    <string name="menu_transferto">ELA 转账</string>
     <string name="qrcode_text_1">请将二维码置于取景框内，即可自动扫描</string>
 
     <string name="asterisk">*</string>
@@ -32,15 +43,27 @@
     <string name="qrcode">二维码</string>
     <string name="mine">我的</string>
     <string name="my_carrier_address">我的联系地址</string>
+    <string-array name="array_firend">
+        <item>@string/friend_detail_deletefriend</item>
+    </string-array>
+    <string-array name="array_message">
+        <item>@string/delete_message</item>
+    </string-array>
+    <string name="is_delete_all_message">是否删除所有消息</string>
+    <string name="update_title">更新提示</string>
+    <string name="not_install_gp">请安装Google Play进行更新</string>
 
     <!-- About wallet-->
     <string name="wallet_backup">备份</string>
     <string name="wallet_backupmnemonic">备份助记词</string>
     <string name="wallet_inamount">收入</string>
+    <string name="wallet_inamount_from">来自: </string>
     <string name="wallet_outamount">支出</string>
+    <string name="wallet_outamount_to">转给: </string>
     <string name="wallet_confirmed">已确认</string>
     <string name="wallet_totalasset">总资产(ELA)</string>
     <string name="wallet_record">交易记录</string>
+    <string name="wallet_has_exception">钱包异常，恢复或者重新创建一个</string>
     <string name="content_copyed">已复制</string>
     <string name="longpressto_copy">*长按二维码可复制地址*</string>
 
@@ -56,6 +79,8 @@
     <string name="transfer_to">转账给: </string>
     <string name="transfer_amount_balance">转账金额  (账户余额: %1$s ELA)</string>
     <string name="transfer_amount_least">最少0.0001 ELA</string>
+    <string name="transfer_ela_address">ELA 地址</string>
+    <string name="transfer_friend_address_invalid">"好友的钱包地址不正确"</string>
 
     <!-- About main-->
     <string name="newmsg_recvtransfer">[收到转账]</string>
@@ -127,8 +152,8 @@
     <!-- robot-->
     <string name="robot_offline">睡着了</string>
     <string name="robot_online">醒来了</string>
-    <string name="smart_reboot">智能机器人</string>
-    <string name="apply_test_money">申请测试币</string>
+    <string name="smart_reboot">Anybot</string>
+    <string name="apply_lottery">抽奖</string>
     <string name="apply_success">申请成功</string>
     <string name="apply_fail">申请失败</string>
     <string name="btn_sure">确定</string>
@@ -142,10 +167,11 @@
 
     <!-- apply result-->
     <string name="applyreslut_invalidaddress">对不起，您的钱包地址无效</string>
-    <string name="applyreslut_applied">对不起，您已经申请过了</string>
+    <string name="applyreslut_applied">对不起，您已经抽过奖了</string>
     <string name="applyreslut_noela">对不起，我没有ELA了，您要等等</string>
-    <string name="applyreslut_ela">恭喜，请等会查看您的钱包</string>
+    <string name="applyreslut_ela">恭喜，您抽到了: %1$s ELA</string>
     <string name="applyreslut_tryagain">可能网络出错，请等会再试试</string>
+    <string name="applyreslut_lottery_limit">对不起，您至少需要有 2 位好友才能参与抽奖</string>
 
     <string name="open_notification_dialog">请手动将通知权限打开, 以便收到信息</string>
     <string name="complite_user_info">完善个人资料</string>
@@ -153,7 +179,10 @@
 
     <string name="is_jion_friend_auto_pass">加我为好友时需要验证</string>
     <string name="is_message_show_notification">开启消息通知栏提示</string>
-    <string name="init_wallet">重新生成钱包</string>
+    <string name="is_message_voice">开启消息通知提示音</string>
+    <string name="renew_wallet">重新生成钱包</string>
+    <string name="renew_wallet_warning">如果旧的钱包还有ELA，请先备份</string>
+    <string name="wallet_sync">钱包同步: </string>
     <string name="clear_friend_data">清除好友数据</string>
 
     <!-- time-->
@@ -174,4 +203,19 @@
     <string name="btn_text_speak_over">松开结束</string>
 
     <string name="unread_number">未读: %1$s 条</string>
+
+    <!-- group -->
+    <string name="group_info">群信息</string>
+    <string name="group_name">群聊名称</string>
+    <string name="join_default_group">请稍等，正在进入默认群聊</string>
+    <string name="wait_carrier_ready">正在进入Carrier网络</string>
+    <string name="group_announcement">Make it happen</string>
+    <string name="claer_group_message">清空聊天记录</string>
+    <string name="deleta_and_exit_group">删除并退出</string>
+    <string name="group_clear_message">确认清空?</string>
+    <string name="group_message_dht_error">"DHT 错误, 重新启动应用可以解决问题"</string>
+    <string name="group_forbidden_message">"已被禁言，无法发送消息"</string>
+    <string name="anybot_auto_hi">你好, 我是 AnyBot</string>
+    <string name="anybot_auto_offline">开发者不在线, 你可以加他为好友</string>
+    <string name="group_message_upsupport">不支持该消息类型，请检查更新</string>
 </resources>

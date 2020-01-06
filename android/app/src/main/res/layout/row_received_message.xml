@@ -27,16 +27,25 @@
             android:scaleType="fitXY" />
 
         <TextView
-            android:id="@+id/tv_chatcontent"
+            android:id="@+id/tv_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/margin_chat_activity"
+            android:layout_toRightOf="@id/iv_userhead"/>
+
+        <TextView
+            android:id="@+id/tv_chatcontent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:layout_marginLeft="@dimen/margin_chat_activity"
+            android:layout_below="@id/tv_name"
             android:layout_toRightOf="@id/iv_userhead"
             android:autoLink="web"
             android:background="@drawable/chat_left_message_bg"
             android:clickable="true"
             android:focusable="true"
-            android:gravity="center"
+            android:gravity="left"
             android:lineSpacingExtra="2dp"
             android:maxWidth="225.0dip"
             android:padding="12dp"

@@ -35,11 +35,10 @@
             android:textSize="36sp" />
 
         <TextView
-            android:id="@+id/tv_current_mouth_money"
+            android:id="@+id/tv_wallet_sync"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:visibility="invisible"
             android:textColor="#ffffffff"
             android:textSize="13sp" />
 
@@ -48,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_toRightOf="@id/tv_current_mouth_money"
+            android:layout_toRightOf="@id/tv_wallet_sync"
             android:layout_marginLeft="30dp"
             android:visibility="invisible"
             android:textColor="#ffffffff"

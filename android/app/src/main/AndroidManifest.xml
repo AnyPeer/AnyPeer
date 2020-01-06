@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="any.xxx.anypeer">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -9,25 +10,28 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove" />
 
     <application
-        android:name="any.xxx.anypeer.app.AppAppcation"
+        android:name=".app.AppAppcation"
         android:allowBackup="true"
         android:icon="@mipmap/app_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Design.Light.NoActionBar">
+        <activity android:name=".moudle.chat.GroupDetailActivity"></activity>
         <activity
-            android:name="any.xxx.anypeer.moudle.main.MainActivity"
+            android:name=".moudle.main.MainActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="any.xxx.anypeer.zxing.CaptureActivity"
+            android:name=".zxing.CaptureActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="any.xxx.anypeer.moudle.chat.ChatActivity"
+            android:name=".moudle.chat.ChatActivity"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
-        <activity android:name="any.xxx.anypeer.moudle.init.SplashActivity"
+        <activity
+            android:name=".moudle.init.SplashActivity"
             android:theme="@style/Theme.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,32 +40,32 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="any.xxx.anypeer.moudle.init.InitActivity"
+            android:name=".moudle.init.InitActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="any.xxx.anypeer.moudle.mine.MineActivity"
+            android:name=".moudle.mine.MineActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="any.xxx.anypeer.moudle.barcode.BarCodeActivity"
+            android:name=".moudle.barcode.BarCodeActivity"
             android:screenOrientation="portrait" />
 
         <service
-            android:name="any.xxx.anypeer.moudle.chat.MessageService"
+            android:name=".moudle.chat.MessageService"
             android:enabled="true" />
 
         <activity
-            android:name="any.xxx.anypeer.moudle.friend.FriendDetailActivity"
+            android:name=".moudle.friend.FriendDetailActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name="any.xxx.anypeer.moudle.chat.ContextMenuActivity"
+            android:name=".moudle.chat.ContextMenuActivity"
             android:theme="@style/MyDialogStyle" />
-        <activity android:name="any.xxx.anypeer.moudle.common.PhotoActivity" />
-        <activity android:name="any.xxx.anypeer.moudle.wallet.WalletActivity" />
-        <activity android:name="any.xxx.anypeer.moudle.wallet.BackupActivity" />
-        <activity android:name="any.xxx.anypeer.moudle.chat.TransferAccountsActivity" />
-        <activity android:name="any.xxx.anypeer.moudle.chat.VideoActivity" />
-        <activity android:name="any.xxx.anypeer.moudle.mine.SettingActivity" />
-        <activity android:name="any.xxx.anypeer.moudle.main.AddFriendActivity"/>
+        <activity android:name=".moudle.common.PhotoActivity" />
+        <activity android:name=".moudle.wallet.WalletActivity" />
+        <activity android:name=".moudle.wallet.BackupActivity" />
+        <activity android:name=".moudle.chat.TransferAccountsActivity" />
+        <activity android:name=".moudle.chat.VideoActivity" />
+        <activity android:name=".moudle.mine.SettingActivity" />
+        <activity android:name=".moudle.main.AddFriendActivity" />
         <activity android:name=".moudle.chat.SendSmallVideoActivity" />
         <activity android:name=".moudle.chat.VideoPlayerActivity" />
         <activity android:name="com.mabeijianxi.smallvideorecord2.MediaRecorderActivity" />

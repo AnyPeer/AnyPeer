@@ -1,6 +1,7 @@
 package any.xxx.anypeer.moudle.main;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -27,21 +28,21 @@ import java.util.List;
 
 import any.xxx.anypeer.R;
 import any.xxx.anypeer.bean.User;
+import any.xxx.anypeer.db.ChatDBManager;
 import any.xxx.anypeer.db.FriendManager;
 import any.xxx.anypeer.moudle.friend.FriendDetailActivity;
 import any.xxx.anypeer.util.AnyDBFriends;
+import any.xxx.anypeer.util.AnyWallet;
+import any.xxx.anypeer.util.EventBus;
 import any.xxx.anypeer.util.NetUtils;
 import any.xxx.anypeer.util.Utils;
-import io.realm.Realm;
 
-public class FriendFragment extends Fragment implements AdapterView.OnItemClickListener {
+public class FriendFragment extends Fragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
     private static final String TAG = "FriendFragment";
     private View mLayout;
-//    private View mLlReboot;
     private ListView mContactListView;
     private ContactAdapter mContactAdapter;
     private MaterialDialog mMaterialDialog;
-//    private ImageView ivClose;
     private ImageView mIvStatus;
     private TextView mTvStatus;
     private Button mBtnRetry;
@@ -65,7 +66,7 @@ public class FriendFragment extends Fragment implements AdapterView.OnItemClickL
 
             //Initialize the dialog.
             if (mMaterialDialog == null) {
-                mMaterialDialog = new MaterialDialog.Builder(context).customView(R.layout.dialog_apply_test_money_layout, false).build();
+                mMaterialDialog = new MaterialDialog.Builder(context).customView(R.layout.dialog_apply_lottery_layout, false).build();
             }
 
 //            ivClose = (ImageView) mMaterialDialog.findViewById(R.id.iv_close);
@@ -79,10 +80,12 @@ public class FriendFragment extends Fragment implements AdapterView.OnItemClickL
 
             mLlReboot.setOnClickListener(v -> {
                 if (mRobotStatus) {
-                    NetUtils.getInstance().sendMessage(NetUtils.ChatRobot.USERID, "ELA", null);
-                }
-                else {
-                    //TODO
+	                if (NetUtils.getInstance().getFriendsCount() >= NetUtils.FRIENDS_LIMIT) {
+		                NetUtils.getInstance().sendMessage(NetUtils.ChatRobot.USERID, "ELA", null);
+	                }
+	                else {
+		                applyResult(Long.toString(ApplyResult.Lottery_Limit));
+	                }
                 }
             });
 
@@ -117,38 +120,48 @@ public class FriendFragment extends Fragment implements AdapterView.OnItemClickL
 
         //"Sorry, please try again later"
         private static final int Try_Again = 4;
+
+	    //"Friends limit."
+	    private static final int Lottery_Limit = 5;
     }
+
     void applyResult(String message) {
         if (message == null || message.isEmpty()) {
             return;
         }
 
         try {
-            int result = Integer.parseInt(message);
+            long result = Long.parseLong(message);
             String show = "";
             boolean success = false;
-            switch (result) {
-                case ApplyResult.Invalid_Address: {
-                    show = getString(R.string.applyreslut_invalidaddress);
-                    break;
-                }
-                case ApplyResult.Already_Applied: {
-                    show = getString(R.string.applyreslut_applied);
-                    break;
-                }
-                case ApplyResult.No_Ela: {
-                    show = getString(R.string.applyreslut_noela);
-                    break;
-                }
-                case ApplyResult.Apply_Success: {
-                    show = getString(R.string.applyreslut_ela);
-                    mBtnRetry.setVisibility(View.GONE);
+            if (result == ApplyResult.Invalid_Address) {
+                show = getString(R.string.applyreslut_invalidaddress);
+            }
+            else if (result == ApplyResult.Already_Applied) {
+                show = getString(R.string.applyreslut_applied);
+            }
+            else if (result == ApplyResult.No_Ela) {
+                show = getString(R.string.applyreslut_noela);
+            }
+            else if (result == ApplyResult.Apply_Success) {
+                show = getString(R.string.applyreslut_ela);
+                mBtnRetry.setVisibility(View.GONE);
+                success = true;
+            }
+            else if (result == ApplyResult.Try_Again) {
+                show = getString(R.string.applyreslut_tryagain);
+            }
+            else if (result == ApplyResult.Lottery_Limit) {
+	            show = getString(R.string.applyreslut_lottery_limit);
+            }
+            else {
+                if (result >= 10000) {
                     success = true;
-                    break;
+                    String infoFormat = getResources().getString(R.string.applyreslut_ela);
+                    show = String.format(infoFormat, AnyWallet.TOELAS(result));
                 }
-                case ApplyResult.Try_Again: {
-                    show = getString(R.string.applyreslut_tryagain);
-                    break;
+                else {
+                    return;
                 }
             }
 
@@ -204,8 +217,6 @@ public class FriendFragment extends Fragment implements AdapterView.OnItemClickL
 
     public void initContactList() {
         if (NetUtils.getInstance() != null) {
-        	boolean isSpecialVersion = Utils.isSpecialVersion(getActivity());
-
             List<User> userInfos = new ArrayList<>();
             try {
                 List<FriendInfo> friendInfos = NetUtils.getInstance().getFriends();
@@ -219,7 +230,7 @@ public class FriendFragment extends Fragment implements AdapterView.OnItemClickL
                         User user = FriendManager.getInstance().getUserById(info.getUserId());
 
                         // 对老版本未存数据库的好友容错处理
-                        if (user == null && isSpecialVersion) {
+                        if (user == null) {
                             Log.d(TAG, "user null");
 
                             user = new User();
@@ -260,6 +271,7 @@ public class FriendFragment extends Fragment implements AdapterView.OnItemClickL
 
                 mContactListView.setAdapter(mContactAdapter);
                 mContactListView.setOnItemClickListener(this);
+                mContactListView.setOnItemLongClickListener(this);
             }
         }
     }
@@ -276,5 +288,28 @@ public class FriendFragment extends Fragment implements AdapterView.OnItemClickL
     private void initViews() {
         mContactListView = mLayout.findViewById(R.id.lvContact);
         initContactList();
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        User user = mContactAdapter.getItem(position);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setItems(R.array.array_firend, (dialog, which) -> {
+            new MaterialDialog.Builder(getActivity())
+                    .title(R.string.friend_detail_deletefriend)
+                    .content(getString(R.string.friend_detail_delete_ask) + user.getUserName())
+                    .negativeText(R.string.friend_add_no)
+                    .onNegative((dialog1, which1) -> dialog1.dismiss())
+                    .positiveText(R.string.friend_add_yes)
+                    .onPositive((dialog1, which1) -> {
+                        NetUtils.getInstance().removeFriend(user.getUserId());
+                        ChatDBManager.getInstance().removeConversation(user.getUserId());
+                        removeUser(user.getUserId());
+                        EventBus.getInstance().notifyAllCallback(false);
+                        dialog1.dismiss();
+                    }).show();
+        });
+        builder.show();
+        return true;
     }
 }
